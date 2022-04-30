@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.15)
+project(neapubase CXX)
+file(GLOB HEAD_FILES "./*.h")
+file(GLOB SRC_FILES "./*.cpp")
+add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${HEAD_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
