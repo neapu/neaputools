@@ -9,4 +9,4 @@
     #define NEAPU_NETWORK_EXPORT 
     // typedef unsigned long long size_t;
 #endif
-#define check1(x, p) if(!(x)) {perror(p);exit(-1);}
+//#define check1(x, p) if(!(x)) {perror(p);exit(-1);}

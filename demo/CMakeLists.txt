@@ -1,1 +1,2 @@
 add_subdirectory(netserver)
+add_subdirectory(netclient)

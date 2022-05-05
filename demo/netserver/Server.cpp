@@ -1,10 +1,11 @@
 #include "Server.h"
-#include "NTLogger.h"
+#include "NELogger.h"
 using namespace neapu;
 
-void Server::OnRecvRequest(std::shared_ptr<neapu::NetClient> _client)
+void Server::OnRecvData(std::shared_ptr<neapu::NetChannel> _client)
 {
     String recv = _client->ReadAll();
+    Logger(LM_INFO) << "Receive request:" << recv;
     if(recv.length()>0){
         _client->Write(recv);
     }
@@ -15,17 +16,17 @@ void Server::OnListened()
     Logger(LM_INFO) << "Server start on " << m_port;
 }
 
-void Server::OnAccept(std::shared_ptr<NetClient> _client)
+void Server::OnAccepted(std::shared_ptr<NetChannel> _client)
 {
     Logger(LM_INFO)<<"Client Accept, "<<(*_client);
 }
 
-void Server::OnClientClosed(std::shared_ptr<NetClient> _client)
+void Server::OnChannelClosed(std::shared_ptr<NetChannel> _client)
 {
     Logger(LM_INFO)<<"Client Close, "<<(*_client);
 }
 
-void Server::OnClientError(std::shared_ptr<NetClient> _client)
+void Server::OnChannelError(std::shared_ptr<NetChannel> _client)
 {
     Logger(LM_ERROR)<<"Client Error, "<<(*_client);
 }
