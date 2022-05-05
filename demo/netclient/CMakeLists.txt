@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+project(netclient_demo CXX)
+include_directories("../../base" "../../network")
+add_executable(${PROJECT_NAME} "main.cpp"  )
+target_link_libraries(${PROJECT_NAME} PUBLIC neapubase neapunetwork)
