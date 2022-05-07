@@ -1,10 +1,10 @@
-#include "NENetClient.h"
+#include "NETcpClient.h"
 #include <event2/event.h>
 #include <functional>
 
 #define BUF_SIZE 1024
 
-int neapu::NetClient::Connect(String _IPAddr, int _port, 
+int neapu::TcpClient::Connect(String _IPAddr, int _port,
     const RecvDataCallbackCli& _recvCb, 
     const ConnectedCallback& _connCb, 
     uint64_t _userData
@@ -25,7 +25,7 @@ int neapu::NetClient::Connect(String _IPAddr, int _port,
         return ERROR_EVENT_BASE;
     }
 
-    m_workThread = std::thread(std::bind(&NetClient::WorkThread, this));
+    m_workThread = std::thread(std::bind(&TcpClient::WorkThread, this));
 
     m_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_fd <= 0) {
@@ -69,7 +69,7 @@ int neapu::NetClient::Connect(String _IPAddr, int _port,
     return 0;
 }
 
-void neapu::NetClient::Close()
+void neapu::TcpClient::Close()
 {
     event_base_loopbreak(m_eb);
     if (m_workThread.joinable()) {
@@ -83,29 +83,33 @@ void neapu::NetClient::Close()
     m_eb = nullptr;
 }
 
-void neapu::NetClient::Send(const ByteArray& data)
+void neapu::TcpClient::Send(const ByteArray& data)
 {
     if (m_channel) {
         m_channel->Write(data);
     }
 }
 
-int neapu::NetClient::OnFdReadReady(int _fd)
+int neapu::TcpClient::OnFdReadReady(int _fd)
 {
     ByteArray data;
     char buf[BUF_SIZE];
     int readSize;
     for (;;) {
         readSize = recv(_fd, buf, BUF_SIZE, 0);
-        if (readSize == EOF) { //接收完成
+        if (readSize == EOF) { //鎺ユ敹瀹屾垚
+            int err = evutil_socket_geterror(_fd);
+            if (err != 0 && err != 10035) { //瀵归潰鎰忓鎺夌嚎
+                Close();
+            }
             break;
         }
-        else if (readSize == 0) { //对面主动断开
+        else if (readSize == 0) { //瀵归潰涓诲姩鏂紑
             Close();
             
             return 0;
         }
-        else if (readSize < 0) { //发生错误
+        else if (readSize < 0) { //鍙戠敓閿欒
             OnChannelError(m_channel);
             Close();
             return 0;
@@ -120,7 +124,7 @@ int neapu::NetClient::OnFdReadReady(int _fd)
     return 0;
 }
 
-void neapu::NetClient::WorkThread()
+void neapu::TcpClient::WorkThread()
 {
     m_workThreadCond.notify_all();
     event_base_dispatch(m_eb);
@@ -128,5 +132,5 @@ void neapu::NetClient::WorkThread()
 
 void neapu::cbClientRead(evutil_socket_t fd, short events, void* user_data)
 {
-    static_cast<neapu::NetClient*>(user_data)->OnFdReadReady(fd);
+    static_cast<neapu::TcpClient*>(user_data)->OnFdReadReady(fd);
 }

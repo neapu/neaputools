@@ -1,7 +1,7 @@
 #pragma once
-#include "NENetBase.h"
+#include "NETcpBase.h"
 
-class Server: public neapu::NetBase{
+class Server: public neapu::TcpBase{
 public:
 protected:
     virtual void OnRecvData(std::shared_ptr<neapu::NetChannel> _client) override;

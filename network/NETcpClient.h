@@ -1,12 +1,12 @@
 #pragma once
-#include "NENetBase.h"
+#include "NETcpBase.h"
 #include "network_pub.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
 namespace neapu {
-	class NEAPU_NETWORK_EXPORT NetClient : public NetBase {
+	class NEAPU_NETWORK_EXPORT TcpClient : public TcpBase {
 		friend class NetWorkThread;
 		friend void cbClientRead(evutil_socket_t fd, short events, void* user_data);
 	public:
@@ -34,6 +34,6 @@ namespace neapu {
 		RecvDataCallbackCli m_recvCb;
 		ConnectedCallback m_connectCb;
 		std::mutex m_workThreadMutex;
-		std::condition_variable m_workThreadCond;//通知主线程已进入事件循环
+		std::condition_variable m_workThreadCond;//閫氱煡涓荤嚎绋嬪凡杩涘叆浜嬩欢寰幆
 	};
 }

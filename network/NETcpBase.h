@@ -28,14 +28,14 @@
 struct sockaddr_in;
 struct event_base;
 namespace neapu {
-class NEAPU_NETWORK_EXPORT NetBase{
+class NEAPU_NETWORK_EXPORT TcpBase{
     friend void cbAccept(evutil_socket_t fd, short events, void* user_data);
     friend void cbSigInt(evutil_socket_t sig, short events, void* user_data);
     friend void cbClientRecv(evutil_socket_t fd, short events, void* user_data);
     friend class NetWorkThread;
 public: 
-    NetBase() :  m_running(false), m_eb(nullptr), m_threadNum(0), m_err(0), m_userData(0) {}
-    //×÷Îª·şÎñ¶Ë
+    TcpBase() :  m_running(false), m_eb(nullptr), m_threadNum(0), m_err(0), m_userData(0) {}
+    //ä½œä¸ºæœåŠ¡ç«¯
     int start(int port, int nThreads);
     int GetLastError();
     String GetLastErrorString();
@@ -56,7 +56,7 @@ protected:
     void SetLastError(int _err, String _errstr);
 protected:
     int m_port = 0;
-    uint64_t m_userData;//´«¸ø»Øµ÷º¯ÊıÓÃµÄ
+    uint64_t m_userData;//ä¼ ç»™å›è°ƒå‡½æ•°ç”¨çš„
     event_base* m_eb;
 private:
     bool m_running;
@@ -65,5 +65,6 @@ private:
     std::vector<std::shared_ptr<NetWorkThread>> m_threadPoll;
     int m_err;
     String m_errstr;
+    std::recursive_mutex m_channelMutex;
 };
 }

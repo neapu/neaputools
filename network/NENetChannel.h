@@ -6,7 +6,7 @@
 namespace neapu{
 class Logger;
 class NEAPU_NETWORK_EXPORT NetChannel{
-    friend class NetBase;
+    friend class TcpBase;
     friend NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetChannel& _netclient);
 public:
     enum class InetType : char {
@@ -22,8 +22,8 @@ public:
     std::shared_ptr<void*> GetUserData();
     unsigned int GetIPv4();
     String GetIPv4String();
-    int GetPort();
-    InetType GetInetType();
+    int GetPort() { return m_port; }
+    InetType GetInetType() { return InetType::IPV4; }
 private:
     NetChannel(int _fd, unsigned int _ipv4, int _port)
         : m_fd(_fd), m_ipv4(_ipv4), m_port(_port), m_inetType(InetType::IPV4) 

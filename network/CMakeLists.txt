@@ -14,11 +14,11 @@ add_library(${PROJECT_NAME} SHARED
 	"network_pub.h"
 	"NENetChannel.h"
 	"NENetChannel.cpp"
-	"NENetBase.h"
-	"NENetBase.cpp"
+	"NETcpBase.h"
+	"NETcpBase.cpp"
 	"NENetWorkThread.h"
 	"NENetWorkThread.cpp"
- "NENetClient.h" "NENetClient.cpp")
+ "NETcpClient.h" "NETcpClient.cpp")
 target_link_libraries(${PROJECT_NAME} PUBLIC neapubase ${LIBEVENT_CORE})
 if(WIN32)
 target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)

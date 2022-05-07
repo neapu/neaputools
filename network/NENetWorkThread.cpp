@@ -1,11 +1,11 @@
 #include "NENetWorkThread.h"
 #include <event2/event.h>
 #include <functional>
-#include "NENetBase.h"
+#include "NETcpBase.h"
 
 using namespace neapu;
 
-neapu::NetWorkThread::NetWorkThread(NetBase* _netBase)
+neapu::NetWorkThread::NetWorkThread(TcpBase* _netBase)
 	: m_eb(nullptr)
 	, m_netBase(_netBase)
 {

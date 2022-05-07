@@ -1,4 +1,4 @@
-#include "NENetBase.h"
+#include "NETcpBase.h"
 #include <event2/event.h>
 #include <stdio.h>
 #include <signal.h>
@@ -14,13 +14,13 @@ using namespace neapu;
 
 void neapu::cbSigInt(evutil_socket_t sig, short events, void* user_data)
 {
-    NetBase* nb = static_cast<NetBase*>(user_data);
-    
+    TcpBase* nb = static_cast<TcpBase*>(user_data);
+    nb->OnSignalInt();
 }
 
 void neapu::cbAccept(evutil_socket_t fd, short events, void* user_data)
 {
-    NetBase* base = static_cast<NetBase*>(user_data);
+    TcpBase* base = static_cast<TcpBase*>(user_data);
     if (events & EV_READ) {
         base->OnListenerAccept(fd);
     }
@@ -28,13 +28,13 @@ void neapu::cbAccept(evutil_socket_t fd, short events, void* user_data)
 
 void neapu::cbClientRecv(evutil_socket_t fd, short events, void* user_data)
 {
-    NetBase* base = static_cast<NetBase*>(user_data);
+    TcpBase* base = static_cast<TcpBase*>(user_data);
     if (base->OnFdReadReady(fd)<0 && base->m_eb) {
         event_base_loopbreak(base->m_eb);
     }
 }
 
-int NetBase::start(int port, int nThreads)
+int TcpBase::start(int port, int nThreads)
 {
     m_port = port;
 #ifdef WIN32
@@ -115,17 +115,17 @@ int NetBase::start(int port, int nThreads)
     return 0;
 }
 
-int neapu::NetBase::GetLastError()
+int neapu::TcpBase::GetLastError()
 {
     return m_err;
 }
 
-String neapu::NetBase::GetLastErrorString()
+String neapu::TcpBase::GetLastErrorString()
 {
     return m_errstr;
 }
 
-int NetBase::OnFdReadReady(int _fd)
+int TcpBase::OnFdReadReady(int _fd)
 {
     auto client = m_channels[_fd];
     char buf[BUF_SIZE];
@@ -134,11 +134,11 @@ int NetBase::OnFdReadReady(int _fd)
         readSize = recv(_fd, buf, BUF_SIZE, 0);
         if (readSize == EOF) { //接收完成
             int err = evutil_socket_geterror(_fd);
-            if (err != 0 && err != 10035) {
+            if (err != 0 && err != 10035) { //对面意外掉线
                 SetLastError(err, evutil_socket_error_to_string(err));
                 client->Close();
                 OnChannelClosed(client);
-                m_channels.erase(_fd);
+                ReleaseClient(_fd);
                 return -1;
             }
             break;
@@ -150,7 +150,7 @@ int NetBase::OnFdReadReady(int _fd)
             }
             client->Close();
             OnChannelClosed(client);
-            m_channels.erase(_fd);
+            ReleaseClient(_fd);
             return -1;
         }
         else if (readSize < 0) { //发生错误
@@ -159,19 +159,19 @@ int NetBase::OnFdReadReady(int _fd)
             client->SetLastError(err, evutil_socket_error_to_string(err));
             client->Close();
             OnChannelError(client);
-            m_channels.erase(_fd);
+            ReleaseClient(_fd);
             return -2;
         }
         client->AppendData(buf, readSize);
     }
     OnRecvData(client);
     if (client->IsClosed()) { //如果链接被关闭了就清理
-        m_channels.erase(_fd);
+        ReleaseClient(_fd);
     }
     return 0;
 }
 
-void neapu::NetBase::OnSignalInt()
+void neapu::TcpBase::OnSignalInt()
 {
     if (m_eb) {
         event_base_loopbreak(m_eb);
@@ -181,7 +181,7 @@ void neapu::NetBase::OnSignalInt()
     }
 }
 
-void neapu::NetBase::OnListenerAccept(int fd)
+void neapu::TcpBase::OnListenerAccept(int fd)
 {
     sockaddr_in sin;
     int len = sizeof(sin);
@@ -208,28 +208,30 @@ void neapu::NetBase::OnListenerAccept(int fd)
     
 }
 
-std::shared_ptr<NetChannel> neapu::NetBase::MakeChannel(int fd, sockaddr_in& sin)
+std::shared_ptr<NetChannel> neapu::TcpBase::MakeChannel(int fd, sockaddr_in& sin)
 {
     return std::shared_ptr<NetChannel>(new NetChannel(fd, ntohl(sin.sin_addr.s_addr), ntohs(sin.sin_port)));
 }
 
-void neapu::NetBase::AddClient(int fd, sockaddr_in& sin)
+void neapu::TcpBase::AddClient(int fd, sockaddr_in& sin)
 {
+    std::unique_lock<std::recursive_mutex> lock(m_channelMutex);
     if (m_channels.find(fd) != m_channels.end()) {
         ReleaseClient(fd);
     }
     m_channels[fd] = MakeChannel(fd, sin);
 }
 
-void neapu::NetBase::ReleaseClient(int fd)
+void neapu::TcpBase::ReleaseClient(int fd)
 {
+    std::unique_lock<std::recursive_mutex> lock(m_channelMutex);
     if (m_channels.find(fd) != m_channels.end()) {
         m_channels[fd]->Close();
         m_channels.erase(fd);
     }
 }
 
-void neapu::NetBase::SetLastError(int _err, String _errstr)
+void neapu::TcpBase::SetLastError(int _err, String _errstr)
 {
     m_err = _err;
     m_errstr = _errstr;

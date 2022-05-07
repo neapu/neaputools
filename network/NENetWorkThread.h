@@ -13,11 +13,11 @@
 struct event_base;
 struct event;
 namespace neapu {
-class NetBase;
+class TcpBase;
 class NetWorkThread {
 	friend void cbRead(evutil_socket_t fd, short events, void* user_data);
 public:
-	NetWorkThread(NetBase* _netBase);
+	NetWorkThread(TcpBase* _netBase);
 	~NetWorkThread();
 	int dispatch(int fd);
 	void WaitInit();
@@ -29,7 +29,7 @@ private:
 	event_base* m_eb;
 	std::thread m_thread;
 	std::map<int, struct event*> m_eventList;
-	NetBase* m_netBase;
+	TcpBase* m_netBase;
 	evutil_socket_t m_fds[2];
 	std::condition_variable m_cond;
 	std::mutex m_condMutex;

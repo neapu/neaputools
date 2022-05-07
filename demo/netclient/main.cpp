@@ -1,4 +1,4 @@
-#include <NENetClient.h>
+#include <NETcpClient.h>
 #include <iostream>
 #include <NELogger.h>
 using namespace neapu;
@@ -17,7 +17,7 @@ void OnConnected(uint64_t)
 int main()
 {
 	int rc;
-	NetClient cli;
+	TcpClient cli;
 	rc = cli.Connect("127.0.0.1", 7669, OnRecv, OnConnected);
 
 	if (rc) {
