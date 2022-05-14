@@ -6,16 +6,8 @@
 #include <vector>
 #include <thread>
 #include <functional>
+#include "NESocketError.h"
 
-#define ERROR_SOCKET_OPEN       -1
-#define ERROR_BIND              -2
-#define ERROR_EVENT_BASE        -3
-#define ERROR_LISTEN            -4
-#define ERROR_EVENT_ADD         -5
-#define ERROR_SOCKET_NONBLOCK   -6
-#define ERROR_SET_REUSEADDR     -7
-#define ERROR_CONNECT           -8
-#define ERROR_DISPATCH          -9
 
 #ifndef evutil_socket_t
 #ifdef WIN32
@@ -31,7 +23,6 @@ namespace neapu {
 class NEAPU_NETWORK_EXPORT TcpBase{
     friend void cbAccept(evutil_socket_t fd, short events, void* user_data);
     friend void cbSigInt(evutil_socket_t sig, short events, void* user_data);
-    friend void cbClientRecv(evutil_socket_t fd, short events, void* user_data);
     friend class NetWorkThread;
 public: 
     TcpBase() :  m_running(false), m_eb(nullptr), m_threadNum(0), m_err(0), m_userData(0) {}

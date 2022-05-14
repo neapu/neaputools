@@ -18,7 +18,7 @@ add_library(${PROJECT_NAME} SHARED
 	"NETcpBase.cpp"
 	"NENetWorkThread.h"
 	"NENetWorkThread.cpp"
- "NETcpClient.h" "NETcpClient.cpp")
+ "NETcpClient.h" "NETcpClient.cpp" "NEUdpBase.h" "NEUdpBase.cpp" "NEIPAddress.h" "NEIPAddress.cpp")
 target_link_libraries(${PROJECT_NAME} PUBLIC neapubase ${LIBEVENT_CORE})
 if(WIN32)
 target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)

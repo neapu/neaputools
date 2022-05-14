@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.15)
+project(udp_demo CXX)
+file(GLOB HEAD_FILES "./*.h")
+file(GLOB SRC_FILES "./*.cpp")
+include_directories("../../base" "../../network")
+add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} PUBLIC neapubase neapunetwork)

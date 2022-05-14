@@ -12,7 +12,7 @@
 
 using namespace neapu;
 
-void neapu::cbSigInt(evutil_socket_t sig, short events, void* user_data)
+static void neapu::cbSigInt(evutil_socket_t sig, short events, void* user_data)
 {
     TcpBase* nb = static_cast<TcpBase*>(user_data);
     nb->OnSignalInt();
@@ -23,14 +23,6 @@ void neapu::cbAccept(evutil_socket_t fd, short events, void* user_data)
     TcpBase* base = static_cast<TcpBase*>(user_data);
     if (events & EV_READ) {
         base->OnListenerAccept(fd);
-    }
-}
-
-void neapu::cbClientRecv(evutil_socket_t fd, short events, void* user_data)
-{
-    TcpBase* base = static_cast<TcpBase*>(user_data);
-    if (base->OnFdReadReady(fd)<0 && base->m_eb) {
-        event_base_loopbreak(base->m_eb);
     }
 }
 
