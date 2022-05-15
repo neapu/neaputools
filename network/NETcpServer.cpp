@@ -11,7 +11,7 @@
 
 using namespace neapu;
 
-int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableWriteCallback = false)
+int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableWriteCallback)
 {
     m_address = _addr;
     if (_enableWriteCallback) {
@@ -85,7 +85,7 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableW
     }
 
 
-    rc = NetBase::AddSocket(m_listenFd, m_socketEvent);
+    rc = NetBase::AddSocket(m_listenFd, EV_READ);
     if (rc < 0) {
         Stop();
         return rc;
@@ -96,6 +96,44 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableW
         return rc;
     }
     return 0;
+}
+
+void neapu::TcpServer::Stoped()
+{
+    if (m_listenFd) {
+        evutil_closesocket(m_listenFd);
+
+    }
+}
+
+TcpServer& neapu::TcpServer::OnRecvData(TcpServerCallback _cb)
+{
+    m_callback.onRecvData = _cb;
+    return *this;
+}
+
+TcpServer& neapu::TcpServer::OnAccepted(TcpServerCallback _cb)
+{
+    m_callback.onAccepted = _cb;
+    return *this;
+}
+
+TcpServer& neapu::TcpServer::OnChannelClosed(TcpServerCallback _cb)
+{
+    m_callback.onChannelClose = _cb;
+    return *this;
+}
+
+TcpServer& neapu::TcpServer::OnChannelError(TcpServerCallback _cb)
+{
+    m_callback.onChannelError = _cb;
+    return *this;
+}
+
+TcpServer& neapu::TcpServer::OnChannelWrite(TcpServerCallback _cb)
+{
+    m_callback.onChannelWrite = _cb;
+    return *this;
 }
 
 void neapu::TcpServer::OnRecvData(std::shared_ptr<neapu::NetChannel> _client)
@@ -123,6 +161,13 @@ void neapu::TcpServer::OnChannelError(std::shared_ptr<neapu::NetChannel> _client
 {
     if (m_callback.onChannelError) {
         m_callback.onChannelError(_client);
+    }
+}
+
+void neapu::TcpServer::OnChannelWrite(std::shared_ptr<neapu::NetChannel> _client)
+{
+    if (m_callback.onChannelWrite) {
+        m_callback.onChannelWrite(_client);
     }
 }
 
@@ -157,7 +202,7 @@ int TcpServer::OnClientReadReady(int _fd)
         else if (readSize < 0) { //发生错误
             int err = evutil_socket_geterror(_fd);
             SetLastError(err, evutil_socket_error_to_string(err));
-            client->SetLastError(err, evutil_socket_error_to_string(err));
+            client->SetError(m_err);
             client->Close();
             OnChannelError(client);
             ReleaseClient(_fd);
@@ -196,14 +241,28 @@ void neapu::TcpServer::OnSignalReady(int _signal)
 
 void neapu::TcpServer::OnListenerAccept(int fd)
 {
-    sockaddr_in sin;
-    int len = sizeof(sin);
-    int accp_fd = accept(fd, (sockaddr*)&sin, &len);
-    if (accp_fd <= 0) {
-        return;
+    int accp_fd;
+    IPAddress addr;
+    if (m_address.IsIPv4()) {
+        sockaddr_in sin;
+        int len = sizeof(sin);
+        accp_fd = accept(fd, (sockaddr*)&sin, &len);
+        if (accp_fd <= 0) {
+            return;
+        }
+        addr = IPAddress::MakeAddress(sin);
+    }
+    else {
+        sockaddr_in6 sin;
+        int len = sizeof(sin);
+        accp_fd = accept(fd, (sockaddr*)&sin, &len);
+        if (accp_fd <= 0) {
+            return;
+        }
+        addr = IPAddress::MakeAddress(sin);
     }
 
-    AddClient(accp_fd, sin);
+    AddClient(accp_fd, addr);
 
     if (evutil_make_socket_nonblocking(accp_fd) < 0) {
         OnChannelClosed(m_channels[accp_fd]);
@@ -212,25 +271,22 @@ void neapu::TcpServer::OnListenerAccept(int fd)
     }
 
     NetBase::AddSocket(accp_fd, m_socketEvent);
+    OnAccepted(m_channels[accp_fd]);
 }
 
-std::shared_ptr<NetChannel> neapu::TcpServer::MakeChannel(int fd, sockaddr_in& sin)
-{
-    return std::shared_ptr<NetChannel>(new NetChannel(fd, ntohl(sin.sin_addr.s_addr), ntohs(sin.sin_port)));
-}
-
-void neapu::TcpServer::AddClient(int fd, sockaddr_in& sin)
+void neapu::TcpServer::AddClient(int fd, const IPAddress& _addr)
 {
     std::unique_lock<std::recursive_mutex> lock(m_channelMutex);
     if (m_channels.find(fd) != m_channels.end()) {
         ReleaseClient(fd);
     }
-    m_channels[fd] = MakeChannel(fd, sin);
+    m_channels[fd] = std::shared_ptr<NetChannel>(new NetChannel(fd, _addr));
 }
 
 void neapu::TcpServer::ReleaseClient(int fd)
 {
     std::unique_lock<std::recursive_mutex> lock(m_channelMutex);
+    NetBase::RemoveSocket(fd);
     if (m_channels.find(fd) != m_channels.end()) {
         m_channels[fd]->Close();
         m_channels.erase(fd);

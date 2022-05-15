@@ -41,8 +41,7 @@ namespace neapu {
 		virtual ~NetBase() noexcept;
 		int Run();
 		void Stop();
-		int GetLastError() const { return m_err; }
-		String GetLastErrorString() const { return m_errstr; }
+		NetworkError GetError() { return m_err; }
 	protected:
 		int InitEvent(int _threadNum);
 		int AddSocket(int _fd, short _ev);
@@ -56,13 +55,13 @@ namespace neapu {
 		virtual void OnReadReady(int _fd) = 0;
 		virtual void OnWriteReady(int _fd) = 0;
 		virtual void OnSignalReady(int _signal) = 0;
+		virtual void Stoped() {}
 	protected:
 		event_base* m_eb = nullptr;
 		int m_threadNum = 0;
 		std::map<int, event*> m_socketEventList;
 		std::map<int, event*> m_signalEventList;
-		int m_err = 0;
-		String m_errstr;
+		NetworkError m_err;
 #ifndef _WIN32
 		ThreadPoll<std::function<void()>> m_threadPoll;
 		SafeQueue<evutil_socket_t> m_readQueue;

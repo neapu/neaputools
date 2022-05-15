@@ -4,30 +4,44 @@
 using namespace neapu;
 using namespace std;
 
-void OnRecv(const ByteArray& data, uint64_t)
-{
-	Logger(LM_INFO) << "Recv data:" << data;
-}
+#define IPV6
 
-void OnConnected(uint64_t)
+void WorkThread(TcpClient* cli)
 {
-	Logger(LM_INFO) << "Connected";
+	cli->Run();
 }
 
 int main()
 {
-	int rc;
+	int rc = 0;
 	TcpClient cli;
-	rc = cli.Connect("127.0.0.1", 7669, OnRecv, OnConnected);
-
+#ifndef IPV6
+	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "127.0.0.1", 9884));
+#else
+	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv6, "::1", 9884));
+#endif
 	if (rc) {
-		Logger(LM_ERROR) << "Connect failed:" << rc << " error:" << cli.GetLastErrorString() << " code:" << cli.GetLastError();
+		Logger(LM_ERROR) << "Connect failed:" << rc << cli.GetError();
 		return rc;
 	}
+	Logger(LM_INFO) << "Connected:" << cli.GetAddress();
+
+	cli.OnRecvData([&](const neapu::ByteArray& data) {
+		Logger(LM_INFO) << "Receive Data:" << data;
+	}).OnClosed([]() {
+		Logger(LM_INFO) << "Closed";
+	});
+
+	std::thread t1 = thread(WorkThread, &cli);
 
 	while (true) {
 		string strin;
 		cin >> strin;
 		cli.Send(strin.c_str());
 	}
+
+	if (t1.joinable()) {
+		t1.join();
+	}
+	return 0;
 }

@@ -1,4 +1,7 @@
 #pragma once
+#include <NEString.h>
+#include <NELogger.h>
+#include "network_pub.h"
 
 #define ERROR_SOCKET_OPEN       -1
 #define ERROR_BIND              -2
@@ -12,9 +15,12 @@
 #define ERROR_SET_WIN_THREAD	-10
 #define ERROR_EB_NULLPTR		-11
 #define ERROR_EVENT_NEW			-12
+#define ERROR_EVENT_UNINIT		-13
 
-using NetworkError = struct {
-	int code = 0;
-	String str = 0;
-	void SetError(int _code, String _str);
-};
+namespace neapu {
+	using NetworkError = struct tagNetworkError {
+		int code = 0;
+		String str;
+	};
+	NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetworkError& _err);
+}

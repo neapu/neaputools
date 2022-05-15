@@ -130,9 +130,13 @@ void neapu::NetBase::RemoveSignal(int _signal)
 
 int neapu::NetBase::Run()
 {
+	if (!m_eb) {
+		return ERROR_EVENT_UNINIT;
+	}
 	int rc = event_base_dispatch(m_eb);
 	event_base_free(m_eb);
 	m_eb = nullptr;
+	Stoped();
 	return rc;
 }
 
@@ -148,8 +152,8 @@ void neapu::NetBase::Stop()
 
 void neapu::NetBase::SetLastError(int _err, String _errstr)
 {
-	m_err = _err;
-	m_errstr = _errstr;
+	m_err.code = _err;
+	m_err.str = _errstr;
 }
 
 #ifndef _WIN32

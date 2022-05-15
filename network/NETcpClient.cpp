@@ -1,10 +1,11 @@
 #include "NETcpClient.h"
 #include <event2/event.h>
 #include <functional>
+using namespace neapu;
 
 #define BUF_SIZE 1024
 
-int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback = false)
+int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback)
 {
     m_address = _addr;
 #ifdef WIN32
@@ -51,6 +52,8 @@ int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback 
         return ERROR_SOCKET_NONBLOCK;
     }
 
+    NetBase::InitEvent(1);
+
     if (_enableWriteCallback) {
         NetBase::AddSocket(m_fd, EV_READ | EV_WRITE);
     }
@@ -58,6 +61,7 @@ int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback 
         NetBase::AddSocket(m_fd, EV_READ);
     }
     
+    m_channel = std::shared_ptr<neapu::NetChannel>(new neapu::NetChannel(m_fd, m_address));
 
     return 0;
 }
@@ -69,9 +73,60 @@ void neapu::TcpClient::Send(const ByteArray& data)
     }
 }
 
-void neapu::TcpClient::Stop()
+TcpClient& neapu::TcpClient::OnWrite(std::function<void()> _cb)
 {
-    NetBase::Stop();
+    m_callback.onWrite = _cb;
+    return *this;
+}
+
+TcpClient& neapu::TcpClient::OnRecvData(std::function<void(const ByteArray& data)> _cb)
+{
+    m_callback.onRecvData = _cb;
+    return *this;
+}
+
+TcpClient& neapu::TcpClient::OnError(std::function<void(const NetworkError& _err)> _cb)
+{
+    m_callback.onError = _cb;
+    return *this;
+}
+
+TcpClient& neapu::TcpClient::OnClosed(std::function<void()> _cb)
+{
+    m_callback.onClosed = _cb;
+    return *this;
+}
+
+void neapu::TcpClient::OnWrite()
+{
+    if (m_callback.onWrite) {
+        m_callback.onWrite();
+    }
+}
+
+void neapu::TcpClient::OnRecvData(const ByteArray& data)
+{
+    if (m_callback.onRecvData) {
+        m_callback.onRecvData(data);
+    }
+}
+
+void neapu::TcpClient::OnError(const NetworkError& _err)
+{
+    if (m_callback.onError) {
+        m_callback.onError(_err);
+    }
+}
+
+void neapu::TcpClient::OnClosed()
+{
+    if (m_callback.onClosed) {
+        m_callback.onClosed();
+    }
+}
+
+void neapu::TcpClient::Stoped()
+{
     if (m_fd) {
         evutil_closesocket(m_fd);
         m_fd = 0;
@@ -88,17 +143,21 @@ void neapu::TcpClient::OnReadReady(int _fd)
         if (readSize == EOF) { //接收完成
             int err = evutil_socket_geterror(_fd);
             if (err != 0 && err != 10035) { //对面意外掉线
+                SetLastError(err, evutil_socket_error_to_string(err));
+                OnError(m_err);
                 Stop();
             }
             break;
         }
         else if (readSize == 0) { //对面主动断开
             Stop();
-
+            OnClosed();
             return;
         }
         else if (readSize < 0) { //发生错误
-            //OnChannelError(m_channel);
+            int err = evutil_socket_geterror(_fd);
+            SetLastError(err, evutil_socket_error_to_string(err));
+            OnError(m_err);
             Stop();
             return;
         }

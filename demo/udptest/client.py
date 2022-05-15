@@ -22,6 +22,6 @@ def RunIPv6(address, port):
 
 if "__main__" == __name__:
     if len(sys.argv)<3:
-        print("arg error")
+        RunIPv6("::1", 8567)
     else:
         RunIPv6(sys.argv[1], sys.argv[2])

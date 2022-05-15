@@ -136,9 +136,8 @@ int neapu::UdpBase::Send(const ByteArray& _data, const IPAddress& _addr)
     return rc;
 }
 
-void neapu::UdpBase::Stop()
+void neapu::UdpBase::Stoped()
 {
-    NetBase::Stop();
     if (m_udpFd) {
         evutil_closesocket(m_udpFd);
         m_udpFd = 0;

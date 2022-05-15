@@ -82,13 +82,7 @@ void NetChannel::AppendData(const char* _data, size_t _len)
     m_readBuffer.append(_data, _len);
 }
 
-void NetChannel::SetLastError(int _err, String _str)
-{
-    m_err = _err;
-    m_errString = _str;
-}
-
 NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const NetChannel& _NetChannel)
 {
-    return _logger<<"[Class NetChannel][fd:"<<_NetChannel.m_fd<<"]";
+    return _logger<<"[Class NetChannel][fd:"<<_NetChannel.m_fd<<"][address:"<<_NetChannel.GetAddress()<<"]";
 }

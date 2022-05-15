@@ -21,7 +21,7 @@ namespace neapu {
 		int Init(int _threads, const IPAddress& _addr, bool _enableWriteCallback = false);
 		int Send(const ByteArray& _data, const IPAddress& _addr);
 		IPAddress Address() const { return m_address; }
-		void Stop();
+		
 		UdpBase& OnRecvData(std::function<void(const ByteArray&, const IPAddress&)> _cb);
 		UdpBase& OnWriteReady(std::function<void()> _cb);
 
@@ -31,6 +31,7 @@ namespace neapu {
 	private:
 		virtual void OnReadReady(int _fd);
 		virtual void OnSignalReady(int _signal);
+		virtual void Stoped() override;
 
 	protected:
 		using UdpBaseCallback = struct {
