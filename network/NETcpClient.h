@@ -1,39 +1,32 @@
 #pragma once
-#include "NETcpBase.h"
+#include "NENetBase.h"
 #include "network_pub.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include "NENetChannel.h"
+#include "NEIPAddress.h"
 
 namespace neapu {
-	class NEAPU_NETWORK_EXPORT TcpClient : public TcpBase {
-		friend class NetWorkThread;
-		friend void cbClientRead(evutil_socket_t fd, short events, void* user_data);
+	class NEAPU_NETWORK_EXPORT TcpClient : public NetBase {
 	public:
-		using RecvDataCallbackCli = std::function<void(const ByteArray&, uint64_t)>;
-		using ConnectedCallback = std::function<void(uint64_t)>;
-		int Connect(String _IPAddr, int _port, 
-			const RecvDataCallbackCli& _recvCb = {}, 
-			const ConnectedCallback& _connCb = {}, 
-			uint64_t _userData = 0
-		);
-		void Close();
+		int Connect(const IPAddress& _addr, bool _enableWriteCallback = false);
 		void Send(const ByteArray& data);
+		void Stop();
 
 	protected:
+		virtual void OnSignalReady(int _signal) override;
+		virtual void OnWriteReady();
+
 		virtual void OnRecvData(const ByteArray& data) {}
-		virtual int OnFdReadReady(int _fd);
-		virtual void OnConnected() {}
+		virtual void OnChannelError(std::shared_ptr<neapu::NetChannel> _client) {}
 	private:
-		void WorkThread();
+		virtual void OnReadReady(int _fd) override;
+		virtual void OnWriteReady(int _fd) override { OnWriteReady(); }
+
 	private:
 		int m_fd;
 		std::shared_ptr<NetChannel> m_channel;
-		std::thread m_workThread;
-		//std::shared_ptr<NetWorkThread> m_workThread;
-		RecvDataCallbackCli m_recvCb;
-		ConnectedCallback m_connectCb;
-		std::mutex m_workThreadMutex;
-		std::condition_variable m_workThreadCond;//通知主线程已进入事件循环
+		IPAddress m_address;
 	};
 }

@@ -65,7 +65,7 @@ void NetChannel::SetUserData(std::shared_ptr<void*> _userData)
     m_userData = _userData;
 }
 
-std::shared_ptr<void*> NetChannel::GetUserData()
+std::shared_ptr<void*> NetChannel::GetUserData() const
 {
     return m_userData;
 }
@@ -74,16 +74,6 @@ void NetChannel::AppendData(ByteArray _data)
 {
     std::unique_lock<std::mutex> locker(m_bufferLock);
     m_readBuffer.append(_data);
-}
-
-unsigned int NetChannel::GetIPv4()
-{
-    return m_ipv4;
-}
-
-String NetChannel::GetIPv4String()
-{
-    return String(); //todo 
 }
 
 void NetChannel::AppendData(const char* _data, size_t _len)

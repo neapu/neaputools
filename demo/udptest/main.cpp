@@ -10,17 +10,19 @@ int main()
 {
 	UdpBase udp;
 #ifndef IPV6
-	int rc = udp.Init(8567, 1, IPAddress::Type::IPv4);
+	int rc = udp.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv4, String(), 8567));
 #else
-	int rc = udp.Init(8567, 1, IPAddress::Type::IPv6);
+	int rc = udp.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv6, String(), 8567));
 #endif // !IPV6
 	Logger(LM_INFO) << "Init Over:" << rc;
 	if (rc)return rc;
-	Logger(LM_INFO) << "Bind Port:" << udp.BindPort();
-	udp.OnRecvData([](const ByteArray& _data, const IPAddress& _addr) {
-			Logger(LM_INFO) << "Receive From:" << _addr.ToString() << " Data:" << _data;
+	Logger(LM_INFO) << "Bind:" << udp.Address();
+	udp.OnRecvData([&](const ByteArray& _data, const IPAddress& _addr) {
+			Logger(LM_INFO) << "Receive From:" << _addr << " Data:" << _data;
+			udp.Send(_data, _addr);
 		});
 	rc = udp.Run();
 	Logger(LM_INFO) << "Server Stop:" << rc;
-	return rc;
+
+	return 0;
 }

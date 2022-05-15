@@ -9,16 +9,19 @@ def RunIPv4():
     sock.sendto(msg.encode("utf-8"), addr)
     print("send message", msg)
 
-def RunIPv6(address):
+def RunIPv6(address, port):
     sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-
+    bind_addr = ('', 5769)
+    sock.bind(bind_addr)
     msg = "test"
-    addr = (address, 8567)
+    addr = (address, int(port))
     sock.sendto(msg.encode("utf-8"), addr)
     print("send message", msg)
+    recv_data = sock.recvfrom(1024)
+    print(recv_data)
 
 if "__main__" == __name__:
-    if len(sys.argv)<2:
-        print("no address")
+    if len(sys.argv)<3:
+        print("arg error")
     else:
-        RunIPv6(sys.argv[1])
+        RunIPv6(sys.argv[1], sys.argv[2])

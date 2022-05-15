@@ -1,10 +1,11 @@
 #include "NEIPAddress.h"
 #include <event2/util.h>
+using namespace neapu;
 
 constexpr auto V4_BUF = 16;
 constexpr auto V6_BUF = 128;
 
-neapu::tagIPAddress neapu::tagIPAddress::MakeAddress(const sockaddr_in& sin)
+neapu::IPAddress neapu::IPAddress::MakeAddress(const sockaddr_in& sin)
 {
 	neapu::IPAddress addr;
 	addr.type = IPAddress::Type::IPv4;
@@ -13,7 +14,7 @@ neapu::tagIPAddress neapu::tagIPAddress::MakeAddress(const sockaddr_in& sin)
 	return addr;
 }
 
-neapu::tagIPAddress neapu::tagIPAddress::MakeAddress(const sockaddr_in6& sin)
+neapu::IPAddress neapu::IPAddress::MakeAddress(const sockaddr_in6& sin)
 {
 	neapu::IPAddress addr;
 	addr.type = IPAddress::Type::IPv6;
@@ -22,7 +23,27 @@ neapu::tagIPAddress neapu::tagIPAddress::MakeAddress(const sockaddr_in6& sin)
 	return addr;
 }
 
-void neapu::tagIPAddress::ToSockaddr(void* _sin) const
+IPAddress neapu::IPAddress::MakeAddress(Type _type, String _strIPAddress, int _port)
+{
+	IPAddress addr;
+	addr.type = _type;
+	if (!_strIPAddress.IsEmpty()) {
+		int rc = 0;
+		if (_type == Type::IPv4) {
+			rc = evutil_inet_pton(AF_INET, _strIPAddress.data(), &addr.v4);
+		}
+		else if (_type == Type::IPv6) {
+			rc = evutil_inet_pton(AF_INET6, _strIPAddress.data(), addr.v6);
+		}
+		if (1 != rc) {
+			Logger(LM_ERROR) << "evutil_inet_pton error:" << rc;
+		}
+	}
+	addr.port = _port;
+	return addr;
+}
+
+void neapu::IPAddress::ToSockaddr(void* _sin) const
 {
 	if (this->IsIPv4()) {
 		auto sin = static_cast<sockaddr_in*>(_sin);
@@ -38,7 +59,7 @@ void neapu::tagIPAddress::ToSockaddr(void* _sin) const
 	}
 }
 
-neapu::String neapu::tagIPAddress::ToString() const
+neapu::String neapu::IPAddress::ToString() const
 {
 	String rst;
 	if (this->IsIPv4()) {
@@ -51,4 +72,9 @@ neapu::String neapu::tagIPAddress::ToString() const
 		rst.append(buf, strlen(buf));
 	}
 	return rst;
+}
+
+NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const IPAddress& _addr)
+{
+	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
 }
