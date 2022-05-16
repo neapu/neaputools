@@ -5,7 +5,7 @@
 #include <Windows.h>
 #endif
 
-static void neapu::cbSocketEvent(evutil_socket_t fd, short events, void* user_data)
+void neapu::cbSocketEvent(evutil_socket_t fd, short events, void* user_data)
 {
 	auto netBase = static_cast<NetBase*>(user_data);
 	if (events & EV_READ) {
@@ -20,7 +20,7 @@ static void neapu::cbSocketEvent(evutil_socket_t fd, short events, void* user_da
 	}
 }
 
-static void neapu::cbSignalEvent(evutil_socket_t fd, short events, void* user_data)
+void neapu::cbSignalEvent(evutil_socket_t fd, short events, void* user_data)
 {
 	auto netBase = static_cast<NetBase*>(user_data);
 	netBase->OnSignalReady(fd);
