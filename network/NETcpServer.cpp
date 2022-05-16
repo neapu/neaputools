@@ -186,7 +186,7 @@ int TcpServer::OnClientReadReady(int _fd)
         if (readSize == EOF) { //接收完成
             int err = evutil_socket_geterror(_fd);
             if (err == RECV_EOF_EN) {
-                continue;
+                break;
             }
             if (err != 0) { //对面意外掉线
                 SetLastError(err, evutil_socket_error_to_string(err));
