@@ -180,7 +180,14 @@ int TcpServer::OnClientReadReady(int _fd)
         readSize = recv(_fd, buf, BUF_SIZE, 0);
         if (readSize == EOF) { //接收完成
             int err = evutil_socket_geterror(_fd);
-            if (err != 0 && err != 10035) { //对面意外掉线
+#ifdef _WIN32
+            if (err == 10035) {
+#else
+            if (err == EAGAIN) {
+#endif
+                continue;
+            }
+            if (err != 0) { //对面意外掉线
                 SetLastError(err, evutil_socket_error_to_string(err));
                 client->Close();
                 OnChannelClosed(client);
