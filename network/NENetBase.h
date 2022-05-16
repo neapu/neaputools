@@ -68,4 +68,6 @@ namespace neapu {
 		int m_running = 0;
 #endif
 	};
+	void cbSocketEvent(evutil_socket_t fd, short events, void* user_data);
+	void cbSignalEvent(evutil_socket_t fd, short events, void* user_data);
 }
