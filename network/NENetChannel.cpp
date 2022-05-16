@@ -47,11 +47,7 @@ int NetChannel::Write(ByteArray _data)
 void NetChannel::Close()
 {
     if(m_fd){
-#ifdef WIN32
-        closesocket(m_fd);
-#else
-        close(m_fd);
-#endif // WIN32
+        evutil_closesocket(m_fd);
         m_fd=0;
     }
 }
