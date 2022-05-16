@@ -102,7 +102,7 @@ void neapu::TcpServer::Stoped()
 {
     if (m_listenFd) {
         evutil_closesocket(m_listenFd);
-
+        m_listenFd = 0;
     }
 }
 
@@ -229,7 +229,10 @@ void neapu::TcpServer::OnReadReady(int _fd)
 
 void neapu::TcpServer::OnWriteReady(int _fd)
 {
-
+    if (m_channels.find(_fd) != m_channels.end()) {
+        OnChannelWrite(m_channels[_fd]);
+    }
+    
 }
 
 void neapu::TcpServer::OnSignalReady(int _signal)
