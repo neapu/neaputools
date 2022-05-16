@@ -1,12 +1,5 @@
 #include "NENetChannel.h"
-#ifdef _WIN32
-#include <WinSock2.h>
-#else
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#endif
+#include <event2/event.h>
 #include "NELogger.h"
 using namespace neapu;
 #define WRITE_SIZE 1024
@@ -30,17 +23,25 @@ ByteArray NetChannel::ReadAll()
     return rst;
 }
 
-void NetChannel::Write(ByteArray _data)
+int NetChannel::Write(ByteArray _data)
 {
     std::unique_lock<std::mutex> locker(m_writeLock);
     const char* ptr = _data.data();
     size_t writeSize = 0;
     size_t offset = 0;
+    int count = 0;
     while(offset<_data.length()) {
         writeSize = _data.length()-offset>WRITE_SIZE?WRITE_SIZE:_data.length()-offset;
-        ::send(m_fd, ptr+offset, writeSize, 0);
+        count = ::send(m_fd, ptr+offset, writeSize, 0);
+        if (count <= 0) {
+            int err = evutil_socket_geterror(m_fd);
+            m_err.code = err;
+            m_err.str = evutil_socket_error_to_string(err);
+            return count;
+        }
         offset+=writeSize;
     }
+    return count;
 }
 
 void NetChannel::Close()

@@ -18,7 +18,7 @@ int main()
 #ifndef IPV6
 	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "127.0.0.1", 9884));
 #else
-	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv6, "::1", 9884));
+	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv6, "240e:3b4:38ed:c11:20c:29ff:fe5b:8962", 9884));
 #endif
 	if (rc) {
 		Logger(LM_ERROR) << "Connect failed:" << rc << cli.GetError();

@@ -12,7 +12,7 @@ namespace neapu {
 	class NEAPU_NETWORK_EXPORT TcpClient : public NetBase {
 	public:
 		int Connect(const IPAddress& _addr, bool _enableWriteCallback = false);
-		void Send(const ByteArray& data);
+		int Send(const ByteArray& data);
 
 		TcpClient& OnWrite(std::function<void()> _cb);
 		TcpClient& OnRecvData(std::function<void(const ByteArray& data)> _cb);

@@ -66,11 +66,12 @@ int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback)
     return 0;
 }
 
-void neapu::TcpClient::Send(const ByteArray& data)
+int neapu::TcpClient::Send(const ByteArray& data)
 {
     if (m_channel) {
-        m_channel->Write(data);
+        return m_channel->Write(data);
     }
+    return 0;
 }
 
 TcpClient& neapu::TcpClient::OnWrite(std::function<void()> _cb)
