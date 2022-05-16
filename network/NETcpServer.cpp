@@ -185,7 +185,7 @@ int TcpServer::OnClientReadReady(int _fd)
 #else
             if (err == EAGAIN) {
 #endif
-                continue;
+                break;
             }
             if (err != 0) { //对面意外掉线
                 SetLastError(err, evutil_socket_error_to_string(err));
