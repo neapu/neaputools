@@ -72,7 +72,7 @@ int neapu::NetBase::InitEvent(int _threadNum)
 
 #ifndef _WIN32
 	//初始化线程池
-	m_running = 0;
+	m_running = 1;
 	m_threadPoll.Init(m_threadNum, std::bind(&NetBase::WorkThread, this));
 #endif // !_WIN32
 	return 0;
