@@ -178,13 +178,13 @@ void neapu::UdpBase::OnReadReady(int _fd)
     std::unique_ptr<char> buf(new char[BUFFER_SIZE]);
     if (m_address.IsIPv4()) {
         sockaddr_in sin;
-        int sinLen = sizeof(sin);
+        socklen_t sinLen = sizeof(sin);
         readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr*)&sin, &sinLen);
         addr = IPAddress::MakeAddress(sin);
     }
     else if (m_address.IsIPv6()) {
         sockaddr_in6 sin;
-        int sinLen = sizeof(sin);
+        socklen_t sinLen = sizeof(sin);
         readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr*)&sin, &sinLen);
         addr = IPAddress::MakeAddress(sin);
     }
