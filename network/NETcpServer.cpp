@@ -245,7 +245,7 @@ void neapu::TcpServer::OnListenerAccept(int fd)
     IPAddress addr;
     if (m_address.IsIPv4()) {
         sockaddr_in sin;
-        int len = sizeof(sin);
+        socklen_t len = sizeof(sin);
         accp_fd = accept(fd, (sockaddr*)&sin, &len);
         if (accp_fd <= 0) {
             return;
@@ -254,7 +254,7 @@ void neapu::TcpServer::OnListenerAccept(int fd)
     }
     else {
         sockaddr_in6 sin;
-        int len = sizeof(sin);
+        socklen_t len = sizeof(sin);
         accp_fd = accept(fd, (sockaddr*)&sin, &len);
         if (accp_fd <= 0) {
             return;

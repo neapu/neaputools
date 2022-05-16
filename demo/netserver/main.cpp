@@ -27,7 +27,7 @@ int main(int argc, char** argv)
         ByteArray data = _netChannel->ReadAll();
         Logger(LM_INFO) << "Receive From:" << *_netChannel;
         Logger(LM_INFO) << "Recvice Data:" << data;
-        _netChannel->Write(data);
+        //_netChannel->Write(data);
     }).OnChannelClosed([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_INFO) << "Client Close:" << *_netChannel;
     }).OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {
