@@ -8,6 +8,11 @@
 #include <event2/thread.h>
 
 #define BUF_SIZE 1024
+#ifdef _WIN32
+#define RECV_EOF_EN 10035
+#else
+#define RECV_EOF_EN EAGAIN
+#endif
 
 using namespace neapu;
 
@@ -180,11 +185,7 @@ int TcpServer::OnClientReadReady(int _fd)
         readSize = recv(_fd, buf, BUF_SIZE, 0);
         if (readSize == EOF) { //接收完成
             int err = evutil_socket_geterror(_fd);
-#ifdef _WIN32
-            if (err == 10035) {
-#else
-            if (err == EAGAIN) {
-#endif
+            if (err == RECV_EOF_EN) {
                 continue;
             }
             if (err != 0) { //对面意外掉线
