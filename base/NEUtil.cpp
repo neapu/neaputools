@@ -73,7 +73,7 @@ int neapu::Settings::Init(String _filePath)
 		return -1;
 	}
 #else
-	f = fopen(_filePath.data(), "r");
+	f = fopen(_filePath.ToCString(), "r");
 	if (!f) {
 		return -1;
 	}
@@ -133,7 +133,7 @@ int neapu::Settings::SetValue(String _title, String _key, String _value)
 		return -1;
 	}
 #else
-	f = fopen(m_filePath.data(), "rb");
+	f = fopen(m_filePath.ToCString(), "rb");
 	if (!f) {
 		return -1;
 	}
@@ -202,7 +202,7 @@ int neapu::Settings::SetValue(String _title, String _key, String _value)
 		return -1;
 	}
 #else
-	f = fopen(m_filePath.data(), "wb");
+	f = fopen(m_filePath.ToCString(), "wb");
 	if (!f) {
 		return -1;
 	}
