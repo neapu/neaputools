@@ -81,9 +81,12 @@ int neapu::Settings::Init(String _filePath)
 	String title = "non";
 	while (!feof(f)) {
 		//读取一行
-		readSize = fread(buf, 1, BUFF_SIZE, f);
-		if (readSize > 0) {
+		auto rst = fgets(buf, BUFF_SIZE-1, f);
+		if (rst) {
 			String str = buf;
+			if (str.Back() == '\n') {
+				str = str.Left(str.Length() - 1);
+			}
 			//处理注释
 			size_t index = str.IndexOf('#');
 			if (index != String::npos) {

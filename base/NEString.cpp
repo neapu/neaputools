@@ -273,6 +273,7 @@ String String::Middle(size_t _begin, size_t _end) const
 
 String String::Left(size_t _len) const
 {
+    _len -= 1;
     if (_len > m_len)_len = m_len;
     return Middle(0, _len);
 }

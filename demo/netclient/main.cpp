@@ -28,7 +28,9 @@ int main()
 	}
 	int rc = 0;
 	TcpClient cli;
-	rc = cli.Connect(IPAddress::MakeAddress(type, address, port));
+	auto addr = IPAddress::MakeAddress(type, address, port);
+	Logger(LM_INFO) << "Connect to:" << addr;
+	rc = cli.Connect(addr);
 
 	if (rc) {
 		Logger(LM_ERROR) << "Connect failed:" << rc << cli.GetError();
