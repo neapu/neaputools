@@ -2,20 +2,27 @@
 #include "NELogger.h"
 #include "NEUtil.h"
 #include "NETcpServer.h"
-
-#define IPV6
+#include "NEByteArray.h"
 
 using namespace neapu;
 int main(int argc, char** argv)
 {
-    Arguments arg(argc, argv);
-    int port = arg.GetValue("port", "9884").ToInt();
+    Settings set;
+    IPAddress::Type type = IPAddress::Type::IPv4;
+    String address = "0.0.0.0";
+    int port = 9884;
+    if (set.Init("server.conf") == 0) {
+        if (set.GetValue("server", "type", "IPv4") == "IPv6") {
+            type = IPAddress::Type::IPv6;
+        }
+
+        address = set.GetValue("server", "address", "0.0.0.0");
+        port = (int)set.GetValue("server", "port", "9884").ToInt();
+    }
     TcpServer tcpServer;
-#ifndef IPV6
-    int rc = tcpServer.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv4, String(), port));
-#else
-    int rc = tcpServer.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv6, String(), port));
-#endif
+
+    int rc = tcpServer.Init(1, IPAddress::MakeAddress(type, address, port));
+
     if (rc < 0) {
         Logger(LM_ERROR) << "Server Init Error:" << rc << " " << tcpServer.GetError();
         return 0;

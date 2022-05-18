@@ -1,6 +1,7 @@
 #include <NETcpClient.h>
 #include <iostream>
 #include <NELogger.h>
+#include <NEUtil.h>
 using namespace neapu;
 using namespace std;
 
@@ -13,13 +14,22 @@ void WorkThread(TcpClient* cli)
 
 int main()
 {
+	Settings set;
+	IPAddress::Type type = IPAddress::Type::IPv4;
+	String address = "127.0.0.1";
+	int port = 9884;
+	if (set.Init("client.conf") == 0) {
+		if (set.GetValue("client", "type", "IPv4") == "IPv6") {
+			type = IPAddress::Type::IPv6;
+		}
+		
+		address = set.GetValue("client", "address", "127.0.0.1");
+		port = (int)set.GetValue("client", "port", "9884").ToInt();
+	}
 	int rc = 0;
 	TcpClient cli;
-#ifndef IPV6
-	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "127.0.0.1", 9884));
-#else
-	rc = cli.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv6, "240e:3b4:38ed:c11:20c:29ff:fe5b:8962", 9884));
-#endif
+	rc = cli.Connect(IPAddress::MakeAddress(type, address, port));
+
 	if (rc) {
 		Logger(LM_ERROR) << "Connect failed:" << rc << cli.GetError();
 		return rc;
@@ -37,7 +47,7 @@ int main()
 	while (true) {
 		string strin;
 		cin >> strin;
-		cli.Send(strin.c_str());
+		cli.Send(strin.c_str(), strin.size());
 	}
 
 	if (t1.joinable()) {

@@ -7,12 +7,14 @@
 #include "NENetChannel.h"
 #include "NEIPAddress.h"
 #include "NENetworkError.h"
+#include "NEByteArray.h"
 
 namespace neapu {
 	class NEAPU_NETWORK_EXPORT TcpClient : public NetBase {
 	public:
 		int Connect(const IPAddress& _addr, bool _enableWriteCallback = false);
 		int Send(const ByteArray& data);
+		int Send(const char* _data, size_t _len);
 
 		TcpClient& OnWrite(std::function<void()> _cb);
 		TcpClient& OnRecvData(std::function<void(const ByteArray& data)> _cb);

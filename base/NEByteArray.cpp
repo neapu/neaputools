@@ -4,11 +4,10 @@
 #include <Windows.h>
 #endif // WIN32
 #include <string.h>
+#include "NEString.h"
 
 #ifdef WIN32
-
-void*
-memmem(const void* l, size_t l_len, const void* s, size_t s_len)
+static void* memmem(const void* l, size_t l_len, const void* s, size_t s_len)
 {
     register char* cur, * last;
     const char* cl = (const char*)l;
@@ -54,7 +53,7 @@ ByteArray::ByteArray() noexcept
 
 ByteArray::ByteArray(const ByteArray& data) noexcept : ByteArray()
 {
-    append(data);
+    Append(data);
 }
 
 ByteArray::ByteArray(ByteArray&& data) noexcept
@@ -67,23 +66,27 @@ ByteArray::ByteArray(ByteArray&& data) noexcept
     data.m_max = 0;
 }
 
-ByteArray::ByteArray(const char* data, size_t len) : ByteArray()
+ByteArray::ByteArray(const char* data, size_t len) noexcept : ByteArray()
 {
-    append(data, len);
+    Append(data, len);
 }
 
-ByteArray::~ByteArray() 
+neapu::ByteArray::ByteArray(const String& _str) noexcept : ByteArray(_str.Ptr(), _str.Length())
+{
+}
+
+ByteArray::~ByteArray() noexcept
 {
     if(m_data)free(m_data);
 }
 
-ByteArray& ByteArray::append(const ByteArray& data) 
+ByteArray& ByteArray::Append(const ByteArray& data) 
 {
-    this->append(data.m_data, data.m_len);
+    this->Append(data.m_data, data.m_len);
     return *this;
 }
 
-ByteArray& ByteArray::append(const char* data, size_t len) 
+ByteArray& ByteArray::Append(const char* data, size_t len) 
 {
     if(len==0)return (*this);
     if(len+m_len>=m_max)
@@ -95,118 +98,44 @@ ByteArray& ByteArray::append(const char* data, size_t len)
     return (*this);
 }
 
-ByteArray& ByteArray::append(int number)
+ByteArray& ByteArray::Append(int number)
 {
     char temp[64];
     sprintf(temp, "%d", number);
-    return append(temp);
+    return Append(temp);
 }
 
-ByteArray& ByteArray::append(const char* str)
+ByteArray& ByteArray::Append(const char* str)
 {
-    return append(str, strlen(str));
+    return Append(str, strlen(str));
 }
 
-ByteArray& ByteArray::append(long long number)
+ByteArray& ByteArray::Append(long long number)
 {
     char temp[64];
     sprintf(temp, "%lld", number);
-    return append(temp);
+    return Append(temp);
 }
 
-ByteArray& ByteArray::append(unsigned int number)
+ByteArray& ByteArray::Append(unsigned int number)
 {
     char temp[64];
     sprintf(temp, "%u", number);
-    return append(temp);
+    return Append(temp);
 }
 
-ByteArray& ByteArray::append(unsigned long long number)
+ByteArray& ByteArray::Append(unsigned long long number)
 {
     char temp[64];
     sprintf(temp, "%llu", number);
-    return append(temp);
+    return Append(temp);
 }
 
-ByteArray& ByteArray::append(double number)
+ByteArray& ByteArray::Append(double number)
 {
     char temp[64];
     sprintf(temp, "%f", number);
-    return append(temp);
-}
-
-#ifdef _WIN32
-std::wstring ByteArray::toWString() 
-{
-    setlocale(LC_ALL, "chs");
-    int len = MultiByteToWideChar(CP_ACP, 0, m_data, m_len, nullptr, 0);
-    int mallocLen = sizeof(wchar_t*)*(len+1);
-    wchar_t* temp = (wchar_t*)malloc(mallocLen);
-    len = MultiByteToWideChar(CP_ACP, 0, m_data, m_len, temp, len);
-    std::wstring strRst(temp, len);
-    free(temp);
-    return strRst;
-}
-#endif
-
-int64_t ByteArray::ToInt()
-{
-    int64_t rst = 0;
-    bool neg = false;
-    size_t i = 0;
-    if (m_len > 0 && m_data[0] == '-') {
-        neg = true;
-        i = 1;
-    }
-    for (; i < m_len; i++) {
-        if (m_data[i] < '0' || m_data[i]>'9')break;
-        rst *= 10;
-        rst += m_data[i] - '0';
-    }
-    if (neg) {
-        rst = -rst;
-    }
-    return rst;
-}
-
-uint64_t ByteArray::ToUInt()
-{
-    uint64_t rst = 0;
-    for (size_t i = 0; i < m_len; i++) {
-        if (m_data[i] < '0' || m_data[i]>'9')break;
-        rst *= 10;
-        rst += m_data[i] - '0';
-    }
-
-    return rst;
-}
-
-double ByteArray::ToFloat()
-{
-    double rst = 0.0;
-    bool neg = false;
-    size_t i = 0;
-    if (m_len > 0 && m_data[0] == '-') {
-        neg = true;
-        i = 1;
-    }
-    for (; i < m_len; i++) {//整数部分
-        if (m_data[i] < '0' || m_data[i]>'9' || m_data[i]=='.')break;
-        rst *= 10;
-        rst += m_data[i];
-    }
-    if (i < m_len && m_data[i] == '.') {//小数部分
-        i++;
-        double coef = 0.1;
-        for (; i < m_len; i++) {
-            rst += m_data[i] * coef;
-            coef /= 10;
-        }
-    }
-    if (neg) {
-        rst = -rst;
-    }
-    return rst;
+    return Append(temp);
 }
 
 size_t ByteArray::IndexOf(char _c, size_t _begin)
@@ -223,8 +152,8 @@ size_t ByteArray::IndexOf(char _c, size_t _begin)
 size_t ByteArray::IndexOf(const ByteArray& _ba, size_t _begin)
 {
     if(_begin>=m_len)return -1;
-    if(_ba.length()==0||_ba.length()==-1)return -1;
-    auto p = (char*)memmem(m_data + _begin, m_len, _ba.m_data, _ba.length());
+    if(_ba.Length()==0||_ba.Length()==-1)return -1;
+    auto p = (char*)memmem(m_data + _begin, m_len, _ba.m_data, _ba.Length());
     if(p)
     {
         return p-m_data;
@@ -239,7 +168,7 @@ ByteArray ByteArray::Middle(size_t _begin, size_t _end)
     if(_end == npos || _end >= m_len)_end = m_len-1;
     size_t len = _end - _begin + 1;
     if(len<=0)return res;
-    res.append(m_data+_begin, len);
+    res.Append(m_data+_begin, len);
     return res;
 }
 
@@ -256,7 +185,7 @@ ByteArray ByteArray::Right(size_t _len)
 }
 
 
-void ByteArray::clear() 
+void ByteArray::Clear() 
 {
     if(m_data && m_len!=0)
         memset(m_data, 0, m_len);

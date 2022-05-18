@@ -5,6 +5,7 @@
 #include "NEIPAddress.h"
 #include "NENetworkError.h"
 #include "network_pub.h"
+#include <NEByteArray.h>
 namespace neapu{
 class Logger;
 class NEAPU_NETWORK_EXPORT NetChannel{

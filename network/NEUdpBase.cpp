@@ -1,6 +1,7 @@
 #include "NEUdpBase.h"
 #include <signal.h>
 #include <event2/event.h>
+#include <NEByteArray.h>
 
 using namespace neapu;
 
@@ -122,12 +123,12 @@ int neapu::UdpBase::Send(const ByteArray& _data, const IPAddress& _addr)
     if (_addr.IsIPv4()) {
         sockaddr_in sin = {0};
         _addr.ToSockaddr(&sin);
-        rc = ::sendto(m_udpFd, _data.data(), _data.length(), 0, (sockaddr*)&sin, sizeof(sin));
+        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr*)&sin, sizeof(sin));
     }
     else if (_addr.IsIPv6()) {
         sockaddr_in6 sin = {0};
         _addr.ToSockaddr(&sin);
-        rc = ::sendto(m_udpFd, _data.data(), _data.length(), 0, (sockaddr*)&sin, sizeof(sin));
+        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr*)&sin, sizeof(sin));
     }
     if (rc<0) {
         int err = evutil_socket_geterror(m_udpFd);
@@ -188,7 +189,7 @@ void neapu::UdpBase::OnReadReady(int _fd)
         readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr*)&sin, &sinLen);
         addr = IPAddress::MakeAddress(sin);
     }
-    data.append(buf.get(), static_cast<size_t>(readSize));
+    data.Append(buf.get(), static_cast<size_t>(readSize));
     OnRecvData(data, addr);
 }
 

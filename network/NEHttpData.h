@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <NEString.h>
+#include <NEByteArray.h>
 
 namespace neapu {
     class HttpData {

@@ -35,13 +35,13 @@ Logger::~Logger()
         if(openFile())
         {
             std::unique_lock<std::mutex> locker(m_fileMutex);
-            fprintf(m_pFile, "%s%s%s\n", temp, getLevelFlag(m_nLevel, false), m_data.data());
+            fprintf(m_pFile, "%s%s%s\n", temp, getLevelFlag(m_nLevel, false), m_data.ToCString());
             fflush(m_pFile);
         }
     }
     if(m_nLevel<=m_nPrintLevel)
     {
-        fprintf(stderr, "%s%s%s\n", temp, getLevelFlag(m_nLevel, true), m_data.data());
+        fprintf(stderr, "%s%s%s\n", temp, getLevelFlag(m_nLevel, true), m_data.ToCString());
     }
 }
 
@@ -72,7 +72,7 @@ void Logger::setPrintLevel(int nPrintLevel)
 
 Logger& Logger::operator<<(const String& str)
 {
-    m_data.append(str);
+    m_data.Append(str);
     return (*this);
 }
 
@@ -84,29 +84,29 @@ Logger& Logger::operator<<(const String& str)
 
 Logger& Logger::operator<<(const int n)
 {
-    m_data.append(n);
+    m_data.Append(n);
     return (*this);
 }
 
 Logger& Logger::operator<<(const double n)
 {
-    m_data.append(n);
+    m_data.Append(n);
     return (*this);
 }
 
 Logger& Logger::operator<<(const long long int n)
 {
-    m_data.append(n);
+    m_data.Append(n);
     return (*this);
 }
 Logger& Logger::operator<<(const unsigned int n)
 {
-    m_data.append(n);
+    m_data.Append(n);
     return (*this);
 }
 Logger& Logger::operator<<(const unsigned long long int n)
 {
-    m_data.append(n);
+    m_data.Append(n);
     return (*this);
 }
 

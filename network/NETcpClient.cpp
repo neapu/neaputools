@@ -74,6 +74,11 @@ int neapu::TcpClient::Send(const ByteArray& data)
     return 0;
 }
 
+int neapu::TcpClient::Send(const char* _data, size_t _len)
+{
+    return Send(ByteArray(_data, _len));
+}
+
 TcpClient& neapu::TcpClient::OnWrite(std::function<void()> _cb)
 {
     m_callback.onWrite = _cb;
@@ -162,7 +167,7 @@ void neapu::TcpClient::OnReadReady(int _fd)
             Stop();
             return;
         }
-        data.append(buf, readSize);
+        data.Append(buf, readSize);
     }
     OnRecvData(data);
     return;

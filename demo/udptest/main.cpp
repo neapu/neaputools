@@ -1,6 +1,7 @@
 #include "iostream"
 #include <NEUdpBase.h>
 #include <NELogger.h>
+#include <NEUtil.h>
 using namespace std;
 using namespace neapu;
 
@@ -8,12 +9,21 @@ using namespace neapu;
 
 int main()
 {
+	Settings set;
+	IPAddress::Type type = IPAddress::Type::IPv4;
+	String address = "0.0.0.0";
+	int port = 9884;
+	if (set.Init("udp.conf") == 0) {
+		if (set.GetValue("udp", "type", "IPv4") == "IPv6") {
+			type = IPAddress::Type::IPv6;
+		}
+
+		address = set.GetValue("udp", "address", "0.0.0.0");
+		port = (int)set.GetValue("udp", "port", "9884").ToInt();
+	}
 	UdpBase udp;
-#ifndef IPV6
-	int rc = udp.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv4, String(), 8567));
-#else
-	int rc = udp.Init(1, IPAddress::MakeAddress(IPAddress::Type::IPv6, String(), 8567));
-#endif // !IPV6
+	int rc = udp.Init(1, IPAddress::MakeAddress(type, address, port));
+
 	Logger(LM_INFO) << "Init Over:" << rc;
 	if (rc)return rc;
 	Logger(LM_INFO) << "Bind:" << udp.Address();

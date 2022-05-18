@@ -30,10 +30,10 @@ IPAddress neapu::IPAddress::MakeAddress(Type _type, String _strIPAddress, int _p
 	if (!_strIPAddress.IsEmpty()) {
 		int rc = 0;
 		if (_type == Type::IPv4) {
-			rc = evutil_inet_pton(AF_INET, _strIPAddress.data(), &addr.v4);
+			rc = evutil_inet_pton(AF_INET, _strIPAddress.ToCString(), &addr.v4);
 		}
 		else if (_type == Type::IPv6) {
-			rc = evutil_inet_pton(AF_INET6, _strIPAddress.data(), addr.v6);
+			rc = evutil_inet_pton(AF_INET6, _strIPAddress.ToCString(), addr.v6);
 		}
 		if (1 != rc) {
 			Logger(LM_ERROR) << "evutil_inet_pton error:" << rc;
@@ -65,11 +65,11 @@ neapu::String neapu::IPAddress::ToString() const
 	if (this->IsIPv4()) {
 		char buf[V4_BUF] = { 0 };
 		evutil_inet_ntop(AF_INET, &v4, buf, V4_BUF);
-		rst.append(buf, strlen(buf));
+		rst.Append(buf, strlen(buf));
 	} else if (this->IsIPv6()) {
 		char buf[V6_BUF] = { 0 };
 		evutil_inet_ntop(AF_INET6, v6, buf, V6_BUF);
-		rst.append(buf, strlen(buf));
+		rst.Append(buf, strlen(buf));
 	}
 	return rst;
 }
