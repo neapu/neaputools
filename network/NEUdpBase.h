@@ -18,7 +18,7 @@ namespace neapu {
 		virtual ~UdpBase() noexcept;
 		UdpBase(const UdpBase&) = delete;
 		UdpBase(UdpBase&& _ub) noexcept;
-		int Init(int _threads, const IPAddress& _addr, bool _enableWriteCallback = false);
+		int Init(int _threads, const IPAddress& _addr);
 		int Send(const ByteArray& _data, const IPAddress& _addr);
 		IPAddress Address() const { return m_address; }
 		
@@ -42,7 +42,5 @@ namespace neapu {
 		int m_udpFd = 0;
 		UdpBaseCallback m_callback;
 		IPAddress m_address;
-		
-		bool m_enableWriteCallback = false;
 	};
 }

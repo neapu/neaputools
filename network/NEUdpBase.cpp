@@ -16,13 +16,12 @@ neapu::UdpBase::UdpBase(UdpBase&& _ub) noexcept
 {
 }
 
-int neapu::UdpBase::Init(int _threads, const IPAddress& _addr, bool _enableWriteCallback)
+int neapu::UdpBase::Init(int _threads, const IPAddress& _addr)
 {
     if (m_udpFd) {
         Stop();
     }
     m_address = _addr;
-    m_enableWriteCallback = _enableWriteCallback;
 #ifdef WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -77,11 +76,7 @@ int neapu::UdpBase::Init(int _threads, const IPAddress& _addr, bool _enableWrite
         return rc;
     }
 
-    short events = EV_READ;
-    if (_enableWriteCallback) {
-        events |= EV_WRITE;
-    }
-    rc = AddSocket(m_udpFd, events);
+    rc = AddEvent(m_udpFd, EV_READ|EV_PERSIST|EV_ET);
     if (rc < 0) {
         Stop();
         return rc;
