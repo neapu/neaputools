@@ -76,12 +76,6 @@ Logger& Logger::operator<<(const String& str)
     return (*this);
 }
 
-// Logger& Logger::operator<<(const ByteArray& data)
-// {
-//     m_data.append(data.to_std_string());
-//     return (*this);
-// }
-
 Logger& Logger::operator<<(const int n)
 {
     m_data.Append(n);

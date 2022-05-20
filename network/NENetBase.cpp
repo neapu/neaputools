@@ -16,7 +16,11 @@ void neapu::cbSocketEvent(evutil_socket_t fd, short events, void* user_data)
 #endif
 	}
 	if (events & EV_WRITE) {
+#ifndef _WIN32
+		netBase->m_writeQueue.enqueue(fd);
+#else
 		netBase->OnWriteReady(fd);
+#endif
 	}
 }
 
@@ -78,10 +82,10 @@ int neapu::NetBase::InitEvent(int _threadNum)
 	return 0;
 }
 
-int neapu::NetBase::AddSocket(int _fd, short _ev)
+int neapu::NetBase::AddEvent(int _fd, short _ev)
 {
 	if (!m_eb) return ERROR_EB_NULLPTR;
-	auto ev = event_new(m_eb, _fd, _ev | EV_PERSIST | EV_ET, cbSocketEvent, this);
+	auto ev = event_new(m_eb, _fd, _ev, cbSocketEvent, this);
 	if (!ev) {
 		return ERROR_EVENT_NEW;
 	}
@@ -164,6 +168,9 @@ void neapu::NetBase::WorkThread()
 		if (m_readQueue.dequeue(_fd))
 		{
 			OnReadReady(_fd);
+		}
+		if (m_writeQueue.dequeue(_fd)) {
+			OnWriteReady(_fd);
 		}
 	}
 }

@@ -15,7 +15,7 @@ class NEAPU_NETWORK_EXPORT TcpServer : public NetBase{
 public: 
     using TcpServerCallback = std::function<void(std::shared_ptr<neapu::NetChannel> _client)>;
     TcpServer() {}
-    int Init(int _threadNum, const IPAddress& _addr, bool _enableWriteCallback = false);
+    int Init(int _threadNum, const IPAddress& _addr);
     
     TcpServer& OnRecvData(TcpServerCallback _cb);
     TcpServer& OnAccepted(TcpServerCallback _cb);
@@ -53,7 +53,6 @@ private:
 
 private:
     int m_listenFd = 0;
-    short m_socketEvent = 0;
     IPAddress m_address;
     std::map<int,std::shared_ptr<NetChannel>> m_channels;
     std::recursive_mutex m_channelMutex;

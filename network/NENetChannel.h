@@ -28,12 +28,9 @@ private:
         : m_fd(_fd)
         , m_address(_addr)
     {}
-    void AppendData(ByteArray _data);
-    void AppendData(const char* _data, size_t _len);
     void SetLastError(int _err, String _str);
 private:
     int m_fd;
-    ByteArray m_readBuffer;
     std::mutex m_bufferLock;
     std::mutex m_writeLock;
     std::shared_ptr<void*> m_userData;

@@ -5,11 +5,15 @@
 using namespace neapu;
 using namespace std;
 
-#define IPV6
-
-void WorkThread(TcpClient* cli)
+void InputThread(TcpClient* _cli)
 {
-	cli->Run();
+	char buf[1024];
+	while (true) {
+		int r = scanf("%s", buf);
+		if (r > 0) {
+			_cli->Send(buf, r);
+		}
+	}
 }
 
 int main()
@@ -27,6 +31,8 @@ int main()
 		port = (int)set.GetValue("client", "port", "9884").ToInt();
 	}
 	int rc = 0;
+
+
 	TcpClient cli;
 	auto addr = IPAddress::MakeAddress(type, address, port);
 	Logger(LM_INFO) << "Connect to:" << addr;
@@ -38,22 +44,14 @@ int main()
 	}
 	Logger(LM_INFO) << "Connected:" << cli.GetAddress();
 
-	cli.OnRecvData([&](const neapu::ByteArray& data) {
-		Logger(LM_INFO) << "Receive Data:" << data;
+	cli.OnRecvData([&](shared_ptr<NetChannel> _channel) {
+		Logger(LM_INFO) << "Receive Data:" << _channel->ReadAll();
 	}).OnClosed([]() {
 		Logger(LM_INFO) << "Closed";
 	});
 
-	std::thread t1 = thread(WorkThread, &cli);
+	thread(InputThread, &cli).detach();
 
-	while (true) {
-		string strin;
-		cin >> strin;
-		cli.Send(strin.c_str(), strin.size());
-	}
-
-	if (t1.joinable()) {
-		t1.join();
-	}
+	cli.Run();
 	return 0;
 }

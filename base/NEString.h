@@ -3,7 +3,8 @@
 #include <string.h>
 #include <string>
 #include <stdint.h>
-#define Find IndexOf
+#include <vector>
+
 namespace neapu {
     class ByteArray;
     class NEAPU_BASE_EXPORT String {
@@ -53,11 +54,16 @@ namespace neapu {
 
         size_t IndexOf(char _c, size_t _begin = 0) const;
         size_t IndexOf(const String& _ba, size_t _begin = 0) const;
+        template<class... Args>
+        size_t Find(Args&&... args) {
+            return IndexOf(std::forward<Args>(args)...);
+        }
         String Middle(size_t _begin, size_t _end) const;
         String Left(size_t _len) const;
         String Right(size_t _len) const;
         void Clear();
         bool IsEmpty() const { return m_len == 0; }
+        std::vector<String> Split(const String& _separator, bool _skepEmpty = false);
 
         void operator=(const String& ba) {
             Clear();
@@ -117,5 +123,6 @@ namespace neapu {
         size_t m_len;
         size_t m_max;
     };
+    using StringList = std::vector<String>;
     NEAPU_BASE_EXPORT String operator+(const char* _cstr, const String& _str);
 }

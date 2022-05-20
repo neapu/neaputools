@@ -1,11 +1,17 @@
 #include "NETcpClient.h"
 #include <event2/event.h>
 #include <functional>
+#include <csignal>
 using namespace neapu;
 
 #define BUF_SIZE 1024
+#ifdef _WIN32
+#define RECV_EOF_EN 10035
+#else
+#define RECV_EOF_EN EAGAIN
+#endif
 
-int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback)
+int neapu::TcpClient::Connect(const IPAddress& _addr)
 {
     m_address = _addr;
 #ifdef WIN32
@@ -53,12 +59,12 @@ int neapu::TcpClient::Connect(const IPAddress& _addr, bool _enableWriteCallback)
     }
 
     NetBase::InitEvent(1);
+    NetBase::AddEvent(m_fd, EV_READ|EV_PERSIST|EV_ET);
 
-    if (_enableWriteCallback) {
-        NetBase::AddSocket(m_fd, EV_READ | EV_WRITE);
-    }
-    else {
-        NetBase::AddSocket(m_fd, EV_READ);
+    rc = NetBase::AddSignal(SIGINT);
+    if (rc < 0) {
+        Stop();
+        return rc;
     }
     
     m_channel = std::shared_ptr<neapu::NetChannel>(new neapu::NetChannel(m_fd, m_address));
@@ -85,7 +91,7 @@ TcpClient& neapu::TcpClient::OnWrite(std::function<void()> _cb)
     return *this;
 }
 
-TcpClient& neapu::TcpClient::OnRecvData(std::function<void(const ByteArray& data)> _cb)
+TcpClient& neapu::TcpClient::OnRecvData(std::function<void(std::shared_ptr<NetChannel> _channel)> _cb)
 {
     m_callback.onRecvData = _cb;
     return *this;
@@ -110,10 +116,10 @@ void neapu::TcpClient::OnWrite()
     }
 }
 
-void neapu::TcpClient::OnRecvData(const ByteArray& data)
+void neapu::TcpClient::OnRecvData(std::shared_ptr<NetChannel> _channel)
 {
     if (m_callback.onRecvData) {
-        m_callback.onRecvData(data);
+        m_callback.onRecvData(_channel);
     }
 }
 
@@ -141,39 +147,65 @@ void neapu::TcpClient::Stoped()
 
 void neapu::TcpClient::OnReadReady(int _fd)
 {
-    ByteArray data;
-    char buf[BUF_SIZE];
-    int readSize;
-    for (;;) {
-        readSize = recv(_fd, buf, BUF_SIZE, 0);
-        if (readSize == EOF) { //接收完成
-            int err = evutil_socket_geterror(_fd);
-            if (err != 0 && err != 10035) { //对面意外掉线
-                SetLastError(err, evutil_socket_error_to_string(err));
-                OnError(m_err);
-                Stop();
-            }
-            break;
-        }
-        else if (readSize == 0) { //对面主动断开
-            Stop();
-            OnClosed();
-            return;
-        }
-        else if (readSize < 0) { //发生错误
-            int err = evutil_socket_geterror(_fd);
-            SetLastError(err, evutil_socket_error_to_string(err));
-            OnError(m_err);
-            Stop();
-            return;
-        }
-        data.Append(buf, readSize);
+    if (_fd != m_fd)return;
+    int rc = recv(_fd, nullptr, 0, MSG_PEEK);
+    int err = evutil_socket_geterror(_fd);
+    if (err == RECV_EOF_EN) {//连接正常关闭
+        OnClosed();
+        Stop();
+        return;
     }
-    OnRecvData(data);
-    return;
+    else if (err != 0) {
+        SetLastError(err, evutil_socket_error_to_string(err));
+        m_channel->SetError(m_err);
+        OnError(m_err);
+        Stop();
+        return;
+    }
+    else {
+        OnRecvData(m_channel);
+    }
+
+    if (m_channel->IsClosed()) { //如果链接被关闭了就清理
+        Stop();
+    }
+
+    //ByteArray data;
+    //char buf[BUF_SIZE];
+    //int readSize;
+    //for (;;) {
+    //    readSize = recv(_fd, buf, BUF_SIZE, 0);
+    //    if (readSize == EOF) { //接收完成
+    //        int err = evutil_socket_geterror(_fd);
+    //        if (err != 0 && err != 10035) { //对面意外掉线
+    //            SetLastError(err, evutil_socket_error_to_string(err));
+    //            OnError(m_err);
+    //            Stop();
+    //        }
+    //        break;
+    //    }
+    //    else if (readSize == 0) { //对面主动断开
+    //        Stop();
+    //        OnClosed();
+    //        return;
+    //    }
+    //    else if (readSize < 0) { //发生错误
+    //        int err = evutil_socket_geterror(_fd);
+    //        SetLastError(err, evutil_socket_error_to_string(err));
+    //        OnError(m_err);
+    //        Stop();
+    //        return;
+    //    }
+    //    data.Append(buf, readSize);
+    //}
+    //OnRecvData(data);
+    //return;
 }
 
 void neapu::TcpClient::OnSignalReady(int _signal)
 {
-    Stop();
+    if (_signal == SIGINT) {
+        Stop();
+    }
+    
 }

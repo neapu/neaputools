@@ -292,6 +292,32 @@ void String::Clear()
     m_len = 0;
 }
 
+std::vector<String> String::Split(const String& _separator, bool _skepEmpty)
+{
+    std::vector<String> rst;
+    size_t index = 0;
+    size_t oldIndex = 0;
+    while(oldIndex < this->Length()) {
+        index = this->IndexOf(_separator, oldIndex);
+        if (index == npos) {
+            break;
+        }
+        if (index == oldIndex) {
+            if (!_skepEmpty) {
+                rst.push_back(String());
+            }
+            oldIndex += 1;
+            continue;
+        }
+        rst.push_back(this->Middle(oldIndex, index - 1));
+        oldIndex = index + 1;
+    }
+    if (oldIndex < this->Length()) {
+        rst.push_back(this->Middle(oldIndex, npos));
+    }
+    return rst;
+}
+
 void String::extend(size_t len)
 {
     size_t newlen = len + BASE_LEN - (len % BASE_LEN);

@@ -44,7 +44,7 @@ namespace neapu {
 		NetworkError GetError() { return m_err; }
 	protected:
 		int InitEvent(int _threadNum);
-		int AddSocket(int _fd, short _ev);
+		int AddEvent(int _fd, short _ev);
 		int AddSignal(int _signal);
 		void RemoveSocket(int _fd);
 		void RemoveSignal(int _signal);
@@ -65,6 +65,7 @@ namespace neapu {
 #ifndef _WIN32
 		ThreadPoll<std::function<void()>> m_threadPoll;
 		SafeQueue<evutil_socket_t> m_readQueue;
+		SafeQueue<evutil_socket_t> m_writeQueue;
 		int m_running = 0;
 #endif
 	};

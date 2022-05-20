@@ -4,14 +4,22 @@
 
 using namespace neapu;
 #define WRITE_SIZE 1024
+#define BUF_SIZE 1024
 
 ByteArray NetChannel::Read(size_t _len)
 {
     std::unique_lock<std::mutex> locker(m_bufferLock);
     ByteArray rst;
-    rst=m_readBuffer.Left(_len);
-    if(m_readBuffer.Length()<_len) {
-        m_readBuffer = m_readBuffer.Middle(_len, m_readBuffer.Length());
+    if (!m_fd)return rst;
+    char buf[BUF_SIZE];
+    int readSize = 0;
+    size_t readCount = 0;
+    while (readCount<_len) {
+        readSize = BUF_SIZE < _len - readCount ? BUF_SIZE : _len - readCount;
+        readSize = recv(m_fd, buf, readSize, 0);
+        if (readSize <= 0)break;
+        rst.Append(buf, readSize);
+        readCount += readSize;
     }
     return rst;
 }
@@ -19,14 +27,22 @@ ByteArray NetChannel::Read(size_t _len)
 ByteArray NetChannel::ReadAll()
 {
     std::unique_lock<std::mutex> locker(m_bufferLock);
-    ByteArray rst = m_readBuffer;
-    m_readBuffer.Clear();
+    ByteArray rst;
+    if (!m_fd)return rst;
+    char buf[BUF_SIZE];
+    int readSize = 0;
+    while (true) {
+        readSize = recv(m_fd, buf, BUF_SIZE, 0);
+        if (readSize <= 0)break;
+        rst.Append(buf, readSize);
+    }
     return rst;
 }
 
 int NetChannel::Write(ByteArray _data)
 {
     std::unique_lock<std::mutex> locker(m_writeLock);
+    if (!m_fd)return -1;
     const char* ptr = _data.Data();
     size_t writeSize = 0;
     size_t offset = 0;
@@ -66,18 +82,6 @@ void NetChannel::SetUserData(std::shared_ptr<void*> _userData)
 std::shared_ptr<void*> NetChannel::GetUserData() const
 {
     return m_userData;
-}
-
-void NetChannel::AppendData(ByteArray _data)
-{
-    std::unique_lock<std::mutex> locker(m_bufferLock);
-    m_readBuffer.Append(_data);
-}
-
-void NetChannel::AppendData(const char* _data, size_t _len)
-{
-    std::unique_lock<std::mutex> locker(m_bufferLock);
-    m_readBuffer.Append(_data, _len);
 }
 
 NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const NetChannel& _NetChannel)

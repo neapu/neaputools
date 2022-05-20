@@ -3,6 +3,7 @@
 #include "NEString.h"
 #include <stdio.h>
 #include <mutex>
+#include <utility>
 // #include "neapuobject.h"
 
 #define LM_NONE     0
@@ -23,6 +24,12 @@ namespace neapu{
         static void setLogLevel(int nLogLevel);
         static void setPrintLevel(int nPrintLevel);
 
+        //template<class... Args>
+        //Logger& operator<<(Args&&... args)
+        //{
+        //    m_data.Append(std::forward<Args>(args)...);
+        //    return *this;
+        //}
         Logger& operator<<(const String& str);
         // Logger& operator<<(const ByteArray& data);
         Logger& operator<<(const double n);

@@ -16,15 +16,9 @@
 
 using namespace neapu;
 
-int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableWriteCallback)
+int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
 {
     m_address = _addr;
-    if (_enableWriteCallback) {
-        m_socketEvent = EV_READ | EV_WRITE;
-    }
-    else {
-        m_socketEvent = EV_READ;
-    }
 #ifdef WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -90,7 +84,7 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr, bool _enableW
     }
 
 
-    rc = NetBase::AddSocket(m_listenFd, EV_READ);
+    rc = NetBase::AddEvent(m_listenFd, EV_READ|EV_PERSIST|EV_ET);
     if (rc < 0) {
         Stop();
         return rc;
@@ -179,46 +173,24 @@ void neapu::TcpServer::OnChannelWrite(std::shared_ptr<neapu::NetChannel> _client
 int TcpServer::OnClientReadReady(int _fd)
 {
     auto client = m_channels[_fd];
-    char buf[BUF_SIZE];
-    int readSize;
-    for (;;) {
-        readSize = recv(_fd, buf, BUF_SIZE, 0);
-        if (readSize == EOF) { //接收完成
-            int err = evutil_socket_geterror(_fd);
-            if (err == RECV_EOF_EN) {
-                break;
-            }
-            if (err != 0) { //对面意外掉线
-                SetLastError(err, evutil_socket_error_to_string(err));
-                client->Close();
-                OnChannelClosed(client);
-                ReleaseClient(_fd);
-                return -1;
-            }
-            break;
-        }
-        else if (readSize == 0) { //对面主动断开
-            int err = evutil_socket_geterror(_fd);
-            if (err != 0) {
-                SetLastError(err, evutil_socket_error_to_string(err));
-            }
-            client->Close();
-            OnChannelClosed(client);
-            ReleaseClient(_fd);
-            return -1;
-        }
-        else if (readSize < 0) { //发生错误
-            int err = evutil_socket_geterror(_fd);
-            SetLastError(err, evutil_socket_error_to_string(err));
-            client->SetError(m_err);
-            client->Close();
-            OnChannelError(client);
-            ReleaseClient(_fd);
-            return -2;
-        }
-        client->AppendData(buf, readSize);
+    
+    char buf[1];
+    int rc = recv(_fd, buf, 1, MSG_PEEK);
+    int err = evutil_socket_geterror(_fd);
+    if (rc == 0) {
+        OnChannelClosed(client);
+        client->Close();
     }
-    OnRecvData(client);
+    else if (err != 0) {
+        SetLastError(err, evutil_socket_error_to_string(err));
+        client->SetError(m_err);
+        OnChannelError(client);
+        client->Close();
+    }
+    else {
+        OnRecvData(client);
+    }
+    
     if (client->IsClosed()) { //如果链接被关闭了就清理
         ReleaseClient(_fd);
     }
@@ -281,7 +253,7 @@ void neapu::TcpServer::OnListenerAccept(int fd)
         return;
     }
 
-    NetBase::AddSocket(accp_fd, m_socketEvent);
+    NetBase::AddEvent(accp_fd, EV_READ|EV_PERSIST|EV_ET);
     OnAccepted(m_channels[accp_fd]);
 }
 

@@ -12,6 +12,6 @@ add_library(${PROJECT_NAME} SHARED
 	"NESafeQueue.h"
 	"NEString.h"
 	"NEThreadPoll.h"
- "NEUtil.h" "NEUtil.cpp" "NEString.cpp")
+ "NEUtil.h" "NEUtil.cpp" "NEString.cpp" "NEFile.h" "NEFile.cpp")
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${HEAD_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

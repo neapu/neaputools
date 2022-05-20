@@ -12,12 +12,12 @@
 namespace neapu {
 	class NEAPU_NETWORK_EXPORT TcpClient : public NetBase {
 	public:
-		int Connect(const IPAddress& _addr, bool _enableWriteCallback = false);
+		int Connect(const IPAddress& _addr);
 		int Send(const ByteArray& data);
 		int Send(const char* _data, size_t _len);
 
 		TcpClient& OnWrite(std::function<void()> _cb);
-		TcpClient& OnRecvData(std::function<void(const ByteArray& data)> _cb);
+		TcpClient& OnRecvData(std::function<void(std::shared_ptr<NetChannel> _channel)> _cb);
 		TcpClient& OnError(std::function<void(const NetworkError& _err)> _cb);
 		TcpClient& OnClosed(std::function<void()> _cb);
 
@@ -25,19 +25,18 @@ namespace neapu {
 	protected:
 		virtual void OnSignalReady(int _signal) override;
 		virtual void OnWrite();
-		virtual void OnRecvData(const ByteArray& data);
+		virtual void OnRecvData(std::shared_ptr<NetChannel> _channel);
 		virtual void OnError(const NetworkError& _err);
 		virtual void OnClosed();
 
 		virtual void Stoped() override;
-	private:
 		virtual void OnReadReady(int _fd) override;
 		virtual void OnWriteReady(int _fd) override { OnWrite(); }
 
 	private:
 		struct {
 			std::function<void()> onWrite;
-			std::function<void(const ByteArray& data)> onRecvData;
+			std::function<void(std::shared_ptr<NetChannel> _channel)> onRecvData;
 			std::function<void(const NetworkError& _err)> onError;
 			std::function<void()> onClosed;
 		} m_callback;

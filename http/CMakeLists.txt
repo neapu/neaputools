@@ -1,0 +1,6 @@
+include_directories("../base" "../network")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	add_compile_definitions(NEAPU_HTTP_EXPORTS)
+endif()
+add_library(neapuhttp SHARED "NEHttpData.h" "NEHttpData.cpp" "NEHttpServer.h" "NEHttpServer.cpp" "NEHttpRequest.h" "NEHttpResponse.h" "NERouter.h" "NERouter.cpp" "NEHttpPublic.h")
+target_link_libraries(neapuhttp PUBLIC neapubase neapunetwork ${LIBEVENT_CORE})
