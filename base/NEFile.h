@@ -25,6 +25,7 @@ namespace neapu {
         void Flush();
         ByteArray Read(size_t _readCount = ByteArray::npos);
         size_t Write(const ByteArray& _ba);
+        String Extension();
     private:
         FILE* m_file = nullptr;
         String m_filename;

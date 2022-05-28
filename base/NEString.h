@@ -10,6 +10,7 @@ namespace neapu {
     class NEAPU_BASE_EXPORT String {
     public:
         static size_t npos;
+        static size_t end;
         String() noexcept;
         String(const String& data) noexcept;
         String(String&& data) noexcept;
@@ -27,6 +28,16 @@ namespace neapu {
         String& Append(unsigned int number);
         String& Append(unsigned long long number);
         String& Append(double number);
+
+        String& Argument(const String& data);
+        String& Argument(const char* data, size_t len);
+        String& Argument(const char* str);
+        String& Argument(const char c);
+        String& Argument(int number);
+        String& Argument(long long number);
+        String& Argument(unsigned int number);
+        String& Argument(unsigned long long number);
+        String& Argument(double number);
 
         
         size_t Length() const { return m_len; }
@@ -54,6 +65,7 @@ namespace neapu {
 
         size_t IndexOf(char _c, size_t _begin = 0) const;
         size_t IndexOf(const String& _ba, size_t _begin = 0) const;
+        size_t LastIndexOf(char _c, size_t _begin = npos) const;
         template<class... Args>
         size_t Find(Args&&... args) {
             return IndexOf(std::forward<Args>(args)...);
@@ -64,6 +76,9 @@ namespace neapu {
         void Clear();
         bool IsEmpty() const { return m_len == 0; }
         std::vector<String> Split(const String& _separator, bool _skepEmpty = false);
+        std::vector<String> Split(const char _separator, bool _skepEmpty = false);
+        bool Replace(const String& _before, const String& _after);
+        bool Contain(const String& _str) const;
 
         void operator=(const String& ba) {
             Clear();
@@ -116,6 +131,14 @@ namespace neapu {
         }
         String operator+(const String& _str);
         void operator+=(const String& _str);
+    public:
+        //去除头尾空格
+        static String RemoveHeadAndTailSpace(String str);
+        static String ToString(int number);
+        static String ToString(long long number);
+        static String ToString(unsigned int number);
+        static String ToString(unsigned long long number);
+        static String ToString(double number);
     protected:
         void extend(size_t len);
     protected:

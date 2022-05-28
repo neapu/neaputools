@@ -15,7 +15,7 @@ class NEAPU_NETWORK_EXPORT NetChannel{
 public:
     ByteArray Read(size_t _len);
     ByteArray ReadAll();
-    int Write(ByteArray _data);
+    int Write(const ByteArray& _data);
     void Close();
     bool IsClosed();
     void SetUserData(std::shared_ptr<void*> _userData);

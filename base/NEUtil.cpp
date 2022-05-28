@@ -44,23 +44,7 @@ String Arguments::GetValue(String key, String def)
 	return def;
 }
 
-//去除头尾空格
-static String RemoveSpace(String str)
-{
-	size_t begin;
-	for (begin = 0; begin < str.Length(); begin++) {
-		if (str[begin] != ' ') {
-			break;
-		}
-	}
-	int end;
-	for (end = (int)str.Length() - 1; end >= 0; end--) {
-		if (str[end] != ' ') {
-			break;
-		}
-	}
-	return str.Middle(begin, (size_t)end);
-}
+
 
 int neapu::Settings::Init(String _filePath)
 {
@@ -103,9 +87,9 @@ int neapu::Settings::Init(String _filePath)
 					continue;
 				}
 				String key = str.Middle(0, index - 1);
-				key = RemoveSpace(key);
+				key = String::RemoveHeadAndTailSpace(key);
 				String value = str.Middle(index + 1, String::npos);
-				value = RemoveSpace(value);
+				value = String::RemoveHeadAndTailSpace(value);
 				if (value.Front() == '\"' && value.Back() == '\"') {
 					value = value.Middle(1, value.Length() - 2);
 				}

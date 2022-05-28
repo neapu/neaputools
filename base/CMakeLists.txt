@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
-project(neapubase CXX)
+set(EXE_NAME neapubase)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_definitions(NEAPU_BASE_EXPORTS)
 endif()
-add_library(${PROJECT_NAME} SHARED 
+add_library(${EXE_NAME} SHARED 
 	"base_pub.h"
 	"NEByteArray.h"
 	"NEByteArray.cpp"
@@ -12,6 +12,6 @@ add_library(${PROJECT_NAME} SHARED
 	"NESafeQueue.h"
 	"NEString.h"
 	"NEThreadPoll.h"
- "NEUtil.h" "NEUtil.cpp" "NEString.cpp" "NEFile.h" "NEFile.cpp")
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ "NEUtil.h" "NEUtil.cpp" "NEString.cpp" "NEFile.h" "NEFile.cpp" "NEByteStream.h" "NEByteStream.cpp" "NEDateTime.h" "NEDateTime.cpp")
+install(TARGETS ${EXE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${HEAD_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

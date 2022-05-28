@@ -5,6 +5,7 @@
 #endif // WIN32
 #include <string.h>
 #include "NEByteArray.h"
+#include <memory>
 
 #ifdef WIN32
 static void* memmem(const void* l, size_t l_len, const void* s, size_t s_len)
@@ -40,6 +41,7 @@ static void* memmem(const void* l, size_t l_len, const void* s, size_t s_len)
 using namespace neapu;
 
 size_t String::npos = (size_t)(-1);
+size_t String::end = (size_t)(-1);
 
 #define BASE_LEN 1024
 String::String() noexcept
@@ -163,6 +165,67 @@ String& String::Append(double number)
     return Append(temp);
 }
 
+String& neapu::String::Argument(const String& data)
+{
+    size_t index = IndexOf("%1");
+    if (index != npos) {
+        Replace("%1", data);
+        char temp1[10];
+        char temp2[10];
+        int count = 2;
+        while (true) {
+            sprintf(temp1, "%%%d", count);
+            sprintf(temp2, "%%%d", count-1);
+            if (IndexOf(temp1) == npos) {
+                break;
+            }
+            Replace(temp1, temp2);
+            count++;
+        }
+    }
+    return *this;
+}
+
+String& neapu::String::Argument(const char* data, size_t len)
+{
+    return Argument(String(data, len));
+}
+
+String& neapu::String::Argument(const char* str)
+{
+    return Argument(String(str));
+}
+
+String& neapu::String::Argument(const char c)
+{
+    return Argument(String().Append(c));
+}
+
+String& neapu::String::Argument(int number)
+{
+    return Argument(ToString(number));
+}
+
+String& neapu::String::Argument(long long number)
+{
+    return Argument(ToString(number));
+}
+
+String& neapu::String::Argument(unsigned int number)
+{
+    return Argument(ToString(number));
+}
+
+String& neapu::String::Argument(unsigned long long number)
+{
+    return Argument(ToString(number));
+}
+
+String& neapu::String::Argument(double number)
+{
+    return Argument(ToString(number));
+}
+
 #ifdef _WIN32
 std::wstring String::ToWString() const
 {
@@ -260,6 +323,20 @@ size_t String::IndexOf(const String& _ba, size_t _begin) const
     return -1;
 }
 
+size_t neapu::String::LastIndexOf(char _c, size_t _begin) const
+{
+    if (m_len == 0)return npos;
+    size_t pos = _begin;
+    if (pos > m_len)pos = m_len;
+    do {
+        pos--;
+        if (m_data[pos] == _c) {
+            return pos;
+        }
+    } while (pos > 0);
+    return npos;
+}
+
 String String::Middle(size_t _begin, size_t _end) const
 {
     String res;
@@ -310,12 +387,109 @@ std::vector<String> String::Split(const String& _separator, bool _skepEmpty)
             continue;
         }
         rst.push_back(this->Middle(oldIndex, index - 1));
+        oldIndex = index + _separator.Length();
+    }
+    if (oldIndex < this->Length()) {
+        rst.push_back(this->Middle(oldIndex, npos));
+    }
+    return rst;
+}
+
+std::vector<String> neapu::String::Split(const char _separator, bool _skepEmpty)
+{
+    std::vector<String> rst;
+    size_t index = 0;
+    size_t oldIndex = 0;
+    while (oldIndex < this->Length()) {
+        index = this->IndexOf(_separator, oldIndex);
+        if (index == npos) {
+            break;
+        }
+        if (index == oldIndex) {
+            if (!_skepEmpty) {
+                rst.push_back(String());
+            }
+            oldIndex += 1;
+            continue;
+        }
+        rst.push_back(this->Middle(oldIndex, index - 1));
         oldIndex = index + 1;
     }
     if (oldIndex < this->Length()) {
         rst.push_back(this->Middle(oldIndex, npos));
     }
     return rst;
+}
+
+bool neapu::String::Replace(const String& _before, const String& _after)
+{
+    size_t index = IndexOf(_before);
+    if (index == npos)return false;
+    int afterSize = _after.Length() - _before.Length();
+    size_t newLen = m_len + afterSize;
+    if (newLen > m_max) {
+        extend(m_len + afterSize);
+    }
+    std::shared_ptr<char> temp(new char[newLen]);
+    size_t offset = 0;
+    memcpy(temp.get() + offset, m_data, index);
+    offset += index;
+    memcpy(temp.get() + offset, _after.m_data, _after.Length());
+    offset += _after.Length();
+    size_t remSize = m_len - (index + _before.Length());
+    memcpy(temp.get() + offset, m_data + (index + _before.Length()), remSize);
+    memset(m_data, 0, m_len);
+    memcpy(m_data, temp.get(), newLen);
+    m_len = newLen;
+    return true;
+}
+
+bool neapu::String::Contain(const String& _str) const
+{
+    return IndexOf(_str) != npos;
+}
+
+//去除头尾空格
+String neapu::String::RemoveHeadAndTailSpace(String str)
+{
+    size_t begin;
+    for (begin = 0; begin < str.Length(); begin++) {
+        if (str[begin] != ' ') {
+            break;
+        }
+    }
+    int end;
+    for (end = (int)str.Length() - 1; end >= 0; end--) {
+        if (str[end] != ' ') {
+            break;
+        }
+    }
+    return str.Middle(begin, (size_t)end);
+}
+
+String neapu::String::ToString(int number)
+{
+    return String().Append(number);
+}
+
+String neapu::String::ToString(long long number)
+{
+    return String().Append(number);
+}
+
+String neapu::String::ToString(unsigned int number)
+{
+    return String().Append(number);
+}
+
+String neapu::String::ToString(unsigned long long number)
+{
+    return String().Append(number);
+}
+
+String neapu::String::ToString(double number)
+{
+    return String().Append(number);
 }
 
 void String::extend(size_t len)

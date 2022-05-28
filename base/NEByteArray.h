@@ -28,19 +28,24 @@ namespace neapu {
         const char* Data() const { return m_data; }
         size_t Length() const { return m_len; }
 
-
-        size_t IndexOf(char _c, size_t _begin = 0);
-        size_t IndexOf(const ByteArray& _ba, size_t _begin = 0);
-        ByteArray Middle(size_t _begin, size_t _end);
-        ByteArray Left(size_t _len);
-        ByteArray Right(size_t _len);
+        template<class... Args>
+        size_t Find(Args&&... args) const {
+            return IndexOf(std::forward<Args>(args)...);
+        }
+        size_t IndexOf(char _c, size_t _begin = 0) const;
+        size_t IndexOf(const ByteArray& _ba, size_t _begin = 0) const;
+        ByteArray Middle(size_t _begin, size_t _end) const;
+        ByteArray Left(size_t _len) const;
+        ByteArray Right(size_t _len) const;
         void Clear();
-        bool IsEmpty() { return m_len == 0; }
+        bool IsEmpty() const { return m_len == 0; }
 
-        void operator=(const ByteArray& ba) {
+        void operator=(const ByteArray& ba) 
+        {
             Clear();
             Append(ba);
         }
+        void operator=(ByteArray&& _ba) noexcept;
         inline bool operator<(const ByteArray& str) const { return strcmp(this->Data(), str.Data()) < 0; }
         inline bool operator==(const ByteArray& ba) const
         {

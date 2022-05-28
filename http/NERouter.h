@@ -6,8 +6,7 @@
 #include "NEHttpPublic.h"
 
 namespace neapu {
-    class HttpResponse;
-    class HttpRequest;
+    class HttpHandle;
     class Path {
     public:
         Path(const String& _path) :m_path(_path) {}
@@ -18,7 +17,7 @@ namespace neapu {
     };
     class Router {
     public:
-        using HttpServerCallback = std::function<HttpResponse(const HttpRequest&)>;
+        using HttpServerCallback = std::function<void(std::shared_ptr<HttpHandle>)>;
         void Insert(const String& _path, HttpServerCallback _cb, HttpMethod _method);
         HttpServerCallback Find(const String& _path, HttpMethod _method);
     private:

@@ -114,3 +114,14 @@ size_t neapu::File::Write(const ByteArray& _ba)
     return offset;
 }
 
+String neapu::File::Extension()
+{
+    String rst;
+    if (m_filename.IsEmpty())return rst;
+    size_t index = m_filename.LastIndexOf('.');
+    if (index != String::npos) {
+        return m_filename.Middle(index + 1, String::end);
+    }
+    return String();
+}
+

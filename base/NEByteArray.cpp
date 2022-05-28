@@ -80,6 +80,17 @@ ByteArray::~ByteArray() noexcept
     if(m_data)free(m_data);
 }
 
+void ByteArray::operator=(ByteArray&& _ba) noexcept
+{
+    Clear();
+    m_data = _ba.m_data;
+    _ba.m_data = nullptr;
+    m_len = _ba.m_len;
+    _ba.m_len = 0;
+    m_max = _ba.m_max;
+    _ba.m_max = 0;
+}
+
 ByteArray& ByteArray::Append(const ByteArray& data) 
 {
     this->Append(data.m_data, data.m_len);
@@ -138,7 +149,7 @@ ByteArray& ByteArray::Append(double number)
     return Append(temp);
 }
 
-size_t ByteArray::IndexOf(char _c, size_t _begin)
+size_t ByteArray::IndexOf(char _c, size_t _begin) const
 {
     if(_begin>=m_len)return -1;
     char* p = (char*)memchr(m_data + _begin, _c, m_len-_begin);
@@ -149,7 +160,7 @@ size_t ByteArray::IndexOf(char _c, size_t _begin)
     return -1;
 }
 
-size_t ByteArray::IndexOf(const ByteArray& _ba, size_t _begin)
+size_t ByteArray::IndexOf(const ByteArray& _ba, size_t _begin) const
 {
     if(_begin>=m_len)return -1;
     if(_ba.Length()==0||_ba.Length()==-1)return -1;
@@ -161,7 +172,7 @@ size_t ByteArray::IndexOf(const ByteArray& _ba, size_t _begin)
     return -1;
 }
 
-ByteArray ByteArray::Middle(size_t _begin, size_t _end)
+ByteArray ByteArray::Middle(size_t _begin, size_t _end) const
 {
     ByteArray res;
     if(_begin>_end || _begin>=m_len)return res;
@@ -172,13 +183,13 @@ ByteArray ByteArray::Middle(size_t _begin, size_t _end)
     return res;
 }
 
-ByteArray ByteArray::Left(size_t _len)
+ByteArray ByteArray::Left(size_t _len) const
 {
     if(_len>m_len)_len=m_len;
     return Middle(0, _len);
 }
 
-ByteArray ByteArray::Right(size_t _len)
+ByteArray ByteArray::Right(size_t _len) const
 {
     if(_len>m_len)_len=m_len;
     return Middle(m_len-_len, m_len);

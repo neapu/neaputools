@@ -39,7 +39,7 @@ ByteArray NetChannel::ReadAll()
     return rst;
 }
 
-int NetChannel::Write(ByteArray _data)
+int NetChannel::Write(const ByteArray& _data)
 {
     std::unique_lock<std::mutex> locker(m_writeLock);
     if (!m_fd)return -1;
