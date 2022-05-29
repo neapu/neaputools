@@ -32,12 +32,12 @@ ByteArray ByteStream::ReadTo(const ByteArray& _sub, bool _includeSubstring)
     else if (_includeSubstring) {
         index += _sub.Length();
         rst = Middle(m_offset, index - 1);
-        m_offset += index;
+        m_offset = index;
     }
     else {
         rst = Middle(m_offset, index - 1);
         index += _sub.Length();
-        m_offset += index;
+        m_offset = index;
     }
     return rst;
 }

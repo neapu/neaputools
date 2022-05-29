@@ -7,7 +7,18 @@
 
 namespace neapu {
     class NetChannel;
-    class HttpHandle {
+    class NEAPU_HTTP_EXPORT HttpHandle {
+    public:
+        enum class ContentType:char
+        {
+            Text,
+            Html,
+            Js,
+            Json,
+            Jpeg,
+            Gif,
+            Png
+        };
     public:
         HttpHandle(std::shared_ptr<NetChannel> _channel) : m_channel(_channel) {}
 
@@ -34,12 +45,17 @@ namespace neapu {
         * 使用这个方法会带上HTTP头
         **********************************/
         int SendResponse(const ByteArray& _body);
+        int SendResponse(const char* _str);
 
         /**********************************
         * 向远端发送数据
         * 这个方法会发送原始数据，不会带上HTTP头
         **********************************/
         int SendRow(const ByteArray& _content);
+
+        void SetContentType(ContentType _contentType);
+
+        void CloseConnetion();
 
         String Path() const { return m_path; }
         void SetPath(String _path) { m_path = _path; }

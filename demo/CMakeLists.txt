@@ -1,3 +1,4 @@
 add_subdirectory(netserver)
 add_subdirectory(netclient)
 add_subdirectory(udptest)
+add_subdirectory(http)

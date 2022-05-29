@@ -7,6 +7,7 @@ std::map<String, String> neapu::HttpServer::m_contentTypeMap{
     {"jpg","image/jpeg"}
     ,{"jpeg","image/jpeg"}
     ,{"gif","image/gif"}
+    ,{"gif","image/png"}
     ,{"txt","text/plain"}
     ,{"html","text/html"}
     ,{"htm","text/html"}
@@ -14,6 +15,7 @@ std::map<String, String> neapu::HttpServer::m_contentTypeMap{
     ,{"css","text/css"}
     ,{"js","application/x-javascript"}
     ,{"json","application/json"}
+    ,{"ico","image/x-icon"}
 };
 
 int neapu::HttpServer::Init(int _threadNum, const IPAddress& _addr)
@@ -49,9 +51,9 @@ void neapu::HttpServer::HttpLog(bool _log)
 void neapu::HttpServer::StaticPath(
     const String& _reqPath,
     const String& _filePath,
-    const size_t _cacheSize = 0,
-    const time_t _cacheTimeout = 0,
-    bool _enableRelativePath = false
+    const size_t _cacheSize,
+    const time_t _cacheTimeout,
+    bool _enableRelativePath
 )
 {
     m_staticPath.m_reqPath = _reqPath;
@@ -130,7 +132,7 @@ void neapu::HttpServer::OnRequestStaticFile(const String& _reqPath, std::shared_
         _handle->SetSendHeader("Content-Type", contentType);
         _handle->SendResponse(data);
     }
-    else if(m_historyMode.enable) {
+    else if(file.Extension().IsEmpty() && m_historyMode.enable) {
         if (m_staticCacheTimeout && time(nullptr) - m_historyMode.cache.m_lastupd < m_staticCacheTimeout) {
             _handle->SetSendHeader("Content-Type", m_historyMode.cache.m_contentType);
             _handle->SendResponse(m_historyMode.cache.m_data);
@@ -138,6 +140,10 @@ void neapu::HttpServer::OnRequestStaticFile(const String& _reqPath, std::shared_
         else {
             HistoryMode(String(m_historyMode.path));
         }
+    }
+    else {
+        _handle->SetState(404, "Not Found");
+        _handle->SendResponse(ByteArray("404 Not Found"));
     }
 }
 
@@ -156,10 +162,17 @@ void neapu::HttpServer::OnRecvData(std::shared_ptr<neapu::NetChannel> _client)
     if (callback) {
         callback(httpHandle);
     }
-    else if(!m_staticPath.m_reqPath.IsEmpty() && method == HttpMethod::GET) {
+    else if(method == HttpMethod::GET) {
         if (path.Left(m_staticPath.m_reqPath.Length()) == m_staticPath.m_reqPath) {
-            OnRequestStaticFile(m_staticPath.m_reqPath, httpHandle);
+            OnRequestStaticFile(path, httpHandle);
         }
+    }
+    else {
+        httpHandle->SetState(404, "Not Found");
+        httpHandle->SendResponse(ByteArray("404 Not Found"));
+    }
+    if (httpHandle->GetRecvHeader("Connection") != "keep-alive") {
+        httpHandle->CloseConnetion();
     }
 }
 

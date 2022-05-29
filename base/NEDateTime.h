@@ -1,8 +1,9 @@
 #pragma once
 #include "NEString.h"
+#include "base_pub.h"
 
 namespace neapu {
-    class DateTime
+    class NEAPU_BASE_EXPORT DateTime
     {
     public:
         DateTime() {}

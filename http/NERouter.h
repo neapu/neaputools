@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "NEHttpPublic.h"
+#include <memory>
 
 namespace neapu {
     class HttpHandle;

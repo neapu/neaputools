@@ -1,10 +1,10 @@
 #pragma once
-#include "network_pub.h"
+#include "NEHttpPublic.h"
 #include "NETcpServer.h"
 #include "NERouter.h"
 
 namespace neapu {
-    class HttpServer :public TcpServer {
+    class NEAPU_HTTP_EXPORT HttpServer :public TcpServer {
     private:
         class StaticFileCache {
         public:

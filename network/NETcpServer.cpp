@@ -71,12 +71,6 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
         }
     }
 
-    if (listen(m_listenFd, 10) < 0) {
-        int err = evutil_socket_geterror(m_listenFd);
-        SetLastError(err, evutil_socket_error_to_string(err));
-        return ERROR_LISTEN;
-    }
-
     rc = NetBase::InitEvent(_threadNum);
     if (rc < 0) {
         Stop();
@@ -93,6 +87,16 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
     if (rc < 0) {
         Stop();
         return rc;
+    }
+    return 0;
+}
+
+int neapu::TcpServer::Listen()
+{
+    if (listen(m_listenFd, 10) < 0) {
+        int err = evutil_socket_geterror(m_listenFd);
+        SetLastError(err, evutil_socket_error_to_string(err));
+        return ERROR_LISTEN;
     }
     return 0;
 }

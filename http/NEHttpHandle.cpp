@@ -2,6 +2,7 @@
 #include "NEByteStream.h"
 #include "NENetChannel.h"
 #include "NEDateTime.h"
+#include "neapu-config.h"
 #include <time.h>
 using namespace neapu;
 
@@ -30,7 +31,7 @@ int neapu::HttpHandle::AnalysisRequest(size_t _length)
     while (true) {
         String headLine = data.ReadLineCRLF();
         if (headLine.IsEmpty())break;
-        size_t index = headLine.IndexOf('=');
+        size_t index = headLine.IndexOf(':');
         if (index == String::npos) {
             return -2;
         }
@@ -96,7 +97,7 @@ int neapu::HttpHandle::SendResponse(const ByteArray& _body)
         SetSendHeader("Content-Type", m_defaultContentType);
     }
     if (m_sendHeader.find("Server") == m_sendHeader.end()) {
-        SetSendHeader("Server", "Neapu Http Server/0.0.1");
+        SetSendHeader("Server", String("Neapu Http Server/") + NETOOLS_PROJECT_VERSION);
     }
     String stateLine = String("HTTP/1.1 %1 %2\r\n").Argument(m_stateCode).Argument(m_stateString);
     String headers;
@@ -108,9 +109,55 @@ int neapu::HttpHandle::SendResponse(const ByteArray& _body)
     return SendRow(ByteArray().Append(ByteArray(stateLine)).Append(ByteArray(headers)).Append(_body));
 }
 
+int neapu::HttpHandle::SendResponse(const char* _str)
+{
+    if (_str) {
+        return SendResponse(ByteArray(_str, strlen(_str)));
+    }
+    return 0;
+}
+
 int neapu::HttpHandle::SendRow(const ByteArray& _content)
 {
     return m_channel->Write(_content);
+}
+
+void neapu::HttpHandle::SetContentType(ContentType _contentType)
+{
+    String contentType;
+    switch (_contentType)
+    {
+    case neapu::HttpHandle::ContentType::Text:
+        contentType = "text/plain";
+        break;
+    case neapu::HttpHandle::ContentType::Html:
+        contentType = "text/html";
+        break;
+    case neapu::HttpHandle::ContentType::Js:
+        contentType = "application/x-javascript";
+        break;
+    case neapu::HttpHandle::ContentType::Json:
+        contentType = "application/json";
+        break;
+    case neapu::HttpHandle::ContentType::Jpeg:
+        contentType = "image/jpeg";
+        break;
+    case neapu::HttpHandle::ContentType::Gif:
+        contentType = "image/gif";
+        break;
+    case neapu::HttpHandle::ContentType::Png:
+        contentType = "image/png";
+        break;
+    default:
+        contentType = "application/octet-stream";
+        break;
+    }
+    SetSendHeader("Content-Type", contentType);
+}
+
+void neapu::HttpHandle::CloseConnetion()
+{
+    m_channel->Close();
 }
 
 void neapu::HttpHandle::SetDefaultContentType(String _ct)

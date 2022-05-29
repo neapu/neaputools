@@ -16,6 +16,7 @@ public:
     using TcpServerCallback = std::function<void(std::shared_ptr<neapu::NetChannel> _client)>;
     TcpServer() {}
     int Init(int _threadNum, const IPAddress& _addr);
+    int Listen();
     
     TcpServer& OnRecvData(TcpServerCallback _cb);
     TcpServer& OnAccepted(TcpServerCallback _cb);
