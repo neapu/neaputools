@@ -10,7 +10,7 @@ String HttpHandle::m_defaultContentType = "text/plain";
 
 int neapu::HttpHandle::AnalysisRequest(size_t _length)
 {
-    ByteStream data = m_channel->Read(_length);
+    ByteStream data = (ByteStream)m_channel->Read(_length);
     String stateLine = data.ReadLineCRLF();
     auto stateLineDatas = stateLine.Split(' ');
     if (stateLineDatas.size() != 3) {
