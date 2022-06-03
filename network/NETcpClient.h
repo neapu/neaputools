@@ -15,6 +15,7 @@ namespace neapu {
 		int Connect(const IPAddress& _addr);
 		int Send(const ByteArray& data);
 		int Send(const char* _data, size_t _len);
+		bool IsConnected() { return m_channel != nullptr; }
 
 		TcpClient& OnWrite(std::function<void()> _cb);
 		TcpClient& OnRecvData(std::function<void(std::shared_ptr<NetChannel> _channel)> _cb);

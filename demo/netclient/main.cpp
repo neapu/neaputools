@@ -2,6 +2,7 @@
 #include <iostream>
 #include <NELogger.h>
 #include <NEUtil.h>
+#include <neapu-config.h>
 using namespace neapu;
 using namespace std;
 
@@ -22,7 +23,7 @@ int main()
 	IPAddress::Type type = IPAddress::Type::IPv4;
 	String address = "127.0.0.1";
 	int port = 9884;
-	if (set.Init("client.conf") == 0) {
+	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/netclient/client.conf") == 0) {
 		if (set.GetValue("client", "type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}

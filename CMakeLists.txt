@@ -21,6 +21,7 @@ add_subdirectory(base)
 add_subdirectory(network)
 add_subdirectory(demo)
 add_subdirectory(http)
+add_subdirectory(redis_connector)
 if(NOT TARGET uninstall)
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"

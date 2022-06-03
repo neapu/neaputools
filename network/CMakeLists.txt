@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-set(EXE_NAME neapunetwork)
+set(EXE_NAME NeapuNetwork)
 include_directories("../base")
 if(WIN32)
 	set(LIB_EVENT_INCLUDE "D:/code/libevent/include" CACHE FILEPATH "libevent include path")
@@ -20,7 +20,7 @@ add_library(${EXE_NAME} SHARED
 	
 	
  "NETcpClient.h" "NETcpClient.cpp" "NEUdpBase.h" "NEUdpBase.cpp" "NEIPAddress.h" "NEIPAddress.cpp" "NENetBase.h" "NENetBase.cpp" "NENetworkError.cpp")
-target_link_libraries(${EXE_NAME} PUBLIC neapubase ${LIBEVENT_CORE})
+target_link_libraries(${EXE_NAME} PUBLIC NeapuBase ${LIBEVENT_CORE})
 if(WIN32)
 target_link_libraries(${EXE_NAME} PUBLIC ws2_32)
 endif()

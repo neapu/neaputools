@@ -3,6 +3,7 @@
 #include "NEUtil.h"
 #include "NETcpServer.h"
 #include "NEByteArray.h"
+#include <neapu-config.h>
 
 using namespace neapu;
 int main(int argc, char** argv)
@@ -11,7 +12,7 @@ int main(int argc, char** argv)
     IPAddress::Type type = IPAddress::Type::IPv4;
     String address = "0.0.0.0";
     int port = 9884;
-    if (set.Init("server.conf") == 0) {
+    if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/netserver/server.conf") == 0) {
         if (set.GetValue("server", "type", "IPv4") == "IPv6") {
             type = IPAddress::Type::IPv6;
         }

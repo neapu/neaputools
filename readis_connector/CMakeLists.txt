@@ -1,7 +1,0 @@
-set(EXE_NAME neapuredisconnector)
-include_directories("../base" "../network")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	add_compile_definitions(NEAPU_READ_CONNECTOR_EXPORTS)
-endif()
-add_library(${EXE_NAME} SHARED  )
-target_link_libraries(${EXE_NAME} PUBLIC neapubase neapunetwork ${LIBEVENT_CORE})

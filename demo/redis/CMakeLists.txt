@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+project(redis_demo CXX)
+include_directories("../../base" "../../redis_connector" "../../network")
+add_executable(${PROJECT_NAME} "main.cpp"  )
+target_link_libraries(${PROJECT_NAME} PUBLIC NeapuBase NeapuRedisConnector)

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-set(EXE_NAME neapubase)
+set(EXE_NAME NeapuBase)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_definitions(NEAPU_BASE_EXPORTS)
 endif()
