@@ -41,6 +41,12 @@ int main(int argc, char** argv)
     }).OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_ERROR) << "Channel Error [" << *_netChannel << "]:" << _netChannel->GetError();
     });
+
+    rc = tcpServer.Listen();
+    if (rc < 0) {
+        Logger(LM_ERROR) << "Listen Error:" << tcpServer.GetError();
+        return rc;
+    }
     rc = tcpServer.Run();
     Logger(LM_INFO) << "Server Stop:" << rc;
     return 0;
