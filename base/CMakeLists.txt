@@ -3,6 +3,7 @@ set(EXE_NAME NeapuBase)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_definitions(NEAPU_BASE_EXPORTS)
 endif()
+file(GLOB HEAD_FILES "./*.h")
 add_library(${EXE_NAME} SHARED 
 	"base_pub.h"
 	"NEByteArray.h"

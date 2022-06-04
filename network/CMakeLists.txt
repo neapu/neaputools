@@ -11,6 +11,7 @@ endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_definitions(NEAPU_NETWORK_EXPORTS)
 endif()
+file(GLOB HEAD_FILES "./*.h")
 add_library(${EXE_NAME} SHARED 
 	"network_pub.h"
 	"NENetChannel.h"
