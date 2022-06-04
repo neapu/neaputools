@@ -1,5 +1,7 @@
 #include <iostream>
 #include <NERedisConnector.h>
+#include <NEIPAddress.h>
+#include <NELogger.h>
 using namespace neapu;
 
 int main()
@@ -7,29 +9,26 @@ int main()
     RedisConnector connector;
     int rc = connector.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "192.168.2.211", 6379));
     if (rc < 0) {
-        Logger(LM_ERROR) << "Connect Error:" << rc << connector.GetError();
+        Logger(LM_ERROR) << "Connect Error:" << rc;
     }
-    auto rst = connector.SyncRunCommand("AUTH pytafjamt");
-    if (rst._type == RedisResponse::Type::Success) {
-        Logger(LM_INFO) << "Auth Success";
+    rc = connector.Auth("pytafjamt");
+    if (rc != 0) {
+        Logger(LM_ERROR) << "Auth Failed" << connector.GetReidsError();
+        return 0;
     }
-    else {
-        Logger(LM_ERROR) << "Auth Failed";
+    
+    rc = connector.SyncSet("test2", "888");
+    if (rc != 0) {
+        Logger(LM_ERROR) << "Set Failed" << connector.GetReidsError();
         return 0;
     }
 
-    rst = connector.SyncRunCommand("SET test1 123");
-    if (rst._type == RedisResponse::Type::Success) {
-        Logger(LM_INFO) << "Set Success";
-    }
-    else {
-        Logger(LM_ERROR) << "Set Failed";
-        return 0;
-    }
-
-    rst = connector.SyncRunCommand("GET test1");
-    if (rst._type == RedisResponse::Type::String) {
+    auto rst = connector.SyncGet("test2");
+    if (rst.IsString()) {
         Logger(LM_INFO) << "Get Data:" << rst._string;
+    }
+    else if (rst.IsError()) {
+        Logger(LM_INFO) << "Get Failed:" << rst._errorString;
     }
     else {
         Logger(LM_ERROR) << "Type Error" << (int)rst._type;

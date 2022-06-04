@@ -45,4 +45,23 @@ namespace neapu {
 		std::shared_ptr<NetChannel> m_channel;
 		IPAddress m_address;
 	};
+
+	class NEAPU_NETWORK_EXPORT TcpClientSync {
+	public:
+		int Connect(const IPAddress& _addr);
+		NetworkError GetError() { return m_err; }
+		int Send(const ByteArray& _data);
+		int Send(const char* _data, size_t _len);
+		ByteArray Recv(size_t _len = (size_t)(-1), int _timeout = 3000);
+		void Close();
+		bool IsConnected() { return m_fd != 0; }
+	protected:
+		void SetLastError(int _err, String _errstr);
+	private:
+		std::mutex m_recvLock;
+		std::mutex m_writeLock;
+		int m_fd = 0;
+		IPAddress m_address;
+		NetworkError m_err;
+	};
 }

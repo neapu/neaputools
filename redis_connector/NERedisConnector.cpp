@@ -1,11 +1,29 @@
 #include "NERedisConnector.h"
+#include "NETcpClient.h"
 using namespace neapu;
+
+int neapu::RedisConnector::Connect(const IPAddress& _addr)
+{
+    if (m_tcpClientSync) {
+        m_tcpClientSync->Close();
+        m_tcpClientSync.reset();
+    }
+
+    m_tcpClientSync = std::unique_ptr<TcpClientSync>(new TcpClientSync);
+    int rc = m_tcpClientSync->Connect(_addr);
+    if (rc < 0) {
+        m_tcpClientSync->Close();
+        m_tcpClientSync.reset();
+        return rc;
+    }
+    return 0;
+}
 
 RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
 {
     RedisResponse rst;
     std::unique_lock<std::mutex> connectorLocker(m_connectorMutex);
-    if (!IsConnected()) {
+    if (!m_tcpClientSync || !m_tcpClientSync->IsConnected()) {
         rst._type = RedisResponse::Type::Error;
         rst._errorCode = -1;
         rst._errorString = "no connect";
@@ -20,19 +38,15 @@ RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
             _cmd.Append("\r\n");
         }
     }
-    std::unique_lock<std::mutex> syncLocker(m_syncMutex);
-    int rc = Send(_cmd);
+    int rc = m_tcpClientSync->Send(_cmd);
     if (rc < 0) {
         rst._type = RedisResponse::Type::Error;
         rst._errorCode = -2;
         rst._errorString = "send error";
         return rst;
     }
-    m_rsped = false;
-    while (!m_rsped) {
-        m_syncCond.wait(syncLocker);
-    }
-    if (m_responseData == "+OK") {
+    m_responseData = m_tcpClientSync->Recv();
+    if (m_responseData == "+OK\r\n") {
         rst._type = RedisResponse::Type::Success;
         return rst;
     }
@@ -56,13 +70,11 @@ RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
     }
     else if (m_responseData.Front() == '$') {//字符串
         auto datas = m_responseData.Split("\r\n");
-        if (datas.size() < 2) {
-            rst._type = RedisResponse::Type::Error;
-            rst._errorCode = -6;
-            rst._errorString = "data format error";
+        int64_t len = datas[0].Middle(1, String::end).ToInt();
+        if (len <= 0 || datas.size() < 2) {
+            rst._type = RedisResponse::Type::String;
             return rst;
         }
-        size_t len = datas[0].Middle(1, String::end).ToInt();
         String data = datas[1];
         if (data.Length() != len) {
             rst._type = RedisResponse::Type::Error;
@@ -81,23 +93,25 @@ RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
     return rst;
 }
 
-void neapu::RedisConnector::OnRecvData(std::shared_ptr<NetChannel> _channel)
+int neapu::RedisConnector::Auth(String _password)
 {
-    m_responseData = _channel->ReadAll();
-    m_rsped = true;
-    m_syncCond.notify_one();
+    auto rst = SyncRunCommand(String("AUTH %1").Argument(_password));
+    if (rst.IsError()) {
+        m_redisError = rst._errorString;
+    }
+    return rst._type == RedisResponse::Type::Success?0:-1;
 }
 
-void neapu::RedisConnector::OnError(const NetworkError& _err)
+int neapu::RedisConnector::SyncSet(String _key, String _value)
 {
-    m_responseData = "ConnectorError";
-    m_rsped = true;
-    m_syncCond.notify_one();
+    auto rst = SyncRunCommand(String("SET %1 %2").Argument(_key).Argument(_value));
+    if (rst.IsError()) {
+        m_redisError = rst._errorString;
+    }
+    return rst._type == RedisResponse::Type::Success?0:-1;
 }
 
-void neapu::RedisConnector::OnClosed()
+RedisResponse neapu::RedisConnector::SyncGet(String _key)
 {
-    m_responseData.Clear();
-    m_rsped = true;
-    m_syncCond.notify_one();
+    return SyncRunCommand(String("GET %1").Argument(_key));
 }

@@ -2,6 +2,7 @@
 #include <NEUdpBase.h>
 #include <NELogger.h>
 #include <NEUtil.h>
+#include <neapu-config.h>
 using namespace std;
 using namespace neapu;
 
@@ -13,7 +14,7 @@ int main()
 	IPAddress::Type type = IPAddress::Type::IPv4;
 	String address = "0.0.0.0";
 	int port = 9884;
-	if (set.Init("udp.conf") == 0) {
+	if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/udp.conf") == 0) {
 		if (set.GetValue("udp", "type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}

@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     IPAddress::Type type = IPAddress::Type::IPv4;
     String address = "0.0.0.0";
     int port = 9884;
-    if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/netserver/server.conf") == 0) {
+    if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/server.conf") == 0) {
         if (set.GetValue("server", "type", "IPv4") == "IPv6") {
             type = IPAddress::Type::IPv6;
         }
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         ByteArray data = _netChannel->ReadAll();
         Logger(LM_INFO) << "Receive From:" << *_netChannel;
         Logger(LM_INFO) << "Recvice Data:" << data;
-        //_netChannel->Write(data);
+        _netChannel->Write(data);
     }).OnChannelClosed([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_INFO) << "Client Close:" << *_netChannel;
     }).OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {

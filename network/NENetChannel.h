@@ -9,8 +9,6 @@
 namespace neapu{
 class Logger;
 class NEAPU_NETWORK_EXPORT NetChannel{
-    friend class TcpServer;
-    friend class TcpClient;
     friend NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetChannel& _netclient);
 public:
     ByteArray Read(size_t _len);
@@ -23,7 +21,6 @@ public:
     IPAddress GetAddress() const { return m_address; }
     NetworkError GetError() const { return m_err; }
     void SetError(const NetworkError& _err) { m_err = _err; }
-private:
     NetChannel(int _fd, const IPAddress& _addr)
         : m_fd(_fd)
         , m_address(_addr)

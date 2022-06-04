@@ -17,7 +17,7 @@ int main()
 	String address;
 	int port = 9884;
 	String title = "http";
-	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/http/http.conf") == 0) {
+	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/configs/http.conf") == 0) {
 		if (set.GetValue(title, "type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}

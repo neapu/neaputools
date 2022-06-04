@@ -10,10 +10,10 @@ void InputThread(TcpClient* _cli)
 {
 	char buf[1024];
 	while (true) {
-		int r = scanf("%s", buf);
-		if (r > 0) {
-			_cli->Send(buf, r);
-		}
+		string str;
+		getline(cin, str);
+		str += "\r\n";
+		_cli->Send(str.c_str(), str.length());
 	}
 }
 
@@ -23,7 +23,7 @@ int main()
 	IPAddress::Type type = IPAddress::Type::IPv4;
 	String address = "127.0.0.1";
 	int port = 9884;
-	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/netclient/client.conf") == 0) {
+	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/configs/client.conf") == 0) {
 		if (set.GetValue("client", "type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}

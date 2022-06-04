@@ -1,9 +1,8 @@
 #pragma once
 #include <NEString.h>
-#include "NETcpClient.h"
 #include <mutex>
-#include <condition_variable>
 #include "NERedisPublic.h"
+#include <NETcpClient.h>
 
 namespace neapu {
 	class NEAPU_READ_CONNECTOR_EXPORT RedisResponse {
@@ -21,28 +20,30 @@ namespace neapu {
 		String _errorString;
 		String _string;
 		int64_t _integer = 0;
+
+		bool IsError() { return _errorCode != 0; }
+		bool IsString() { return _type == Type::String; }
+		bool IsInteger() { return _type == Type::Integer; }
 	};
 
-	class NEAPU_READ_CONNECTOR_EXPORT RedisConnector : public TcpClient
+	class NEAPU_READ_CONNECTOR_EXPORT RedisConnector
 	{
 	public:
+		int Connect(const IPAddress& _addr);
 		RedisResponse SyncRunCommand(String _cmd);
+		int Auth(String _password);
+		int SyncSet(String _key, String _value);
+		RedisResponse SyncGet(String _key);
+
 		String GetReidsError() 
 		{
 			return m_redisError;
 		}
 
 	private:
-		virtual void OnRecvData(std::shared_ptr<NetChannel> _channel) override;
-		virtual void OnError(const NetworkError& _err) override;
-		virtual void OnClosed() override;
-
-	private:
 		std::mutex m_connectorMutex;
-		std::mutex m_syncMutex;
-		std::condition_variable m_syncCond;
-		bool m_rsped = false;
 		String m_responseData;
 		String m_redisError;
+		std::unique_ptr<TcpClientSync> m_tcpClientSync;
 	};
 }
