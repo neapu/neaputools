@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(neaputools VERSION 0.0.1 LANGUAGES CXX)
+project(neaputools VERSION 0.0.2 LANGUAGES CXX)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 message("library dir:" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
@@ -11,7 +11,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     add_compile_options(-g)
 endif ()
 include_directories(${CMAKE_BINARY_DIR})
-
+message("install path:" ${CMAKE_INSTALL_PREFIX})
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include/neaputools)
 

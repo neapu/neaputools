@@ -20,7 +20,7 @@ add_library(${EXE_NAME} SHARED
 	"NETcpServer.cpp"
 	
 	
- "NETcpClient.h" "NETcpClient.cpp" "NEUdpBase.h" "NEUdpBase.cpp" "NEIPAddress.h" "NEIPAddress.cpp" "NENetBase.h" "NENetBase.cpp" "NENetworkError.cpp"  )
+ "NETcpClient.h" "NETcpClient.cpp" "NEUdpBase.h" "NEUdpBase.cpp" "NEIPAddress.h" "NEIPAddress.cpp" "NENetBase.h" "NENetBase.cpp" "NENetworkError.cpp"   "NEEventBase.h" "NEEventBase.cpp")
 target_link_libraries(${EXE_NAME} PUBLIC NeapuBase ${LIBEVENT_CORE})
 if(WIN32)
 target_link_libraries(${EXE_NAME} PUBLIC ws2_32)

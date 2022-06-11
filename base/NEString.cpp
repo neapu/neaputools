@@ -125,8 +125,11 @@ String& String::Append(const char c)
     return (*this);
 }
 
-String& String::Append(int number)
+String& String::Append(int number, NumberBase _base)
 {
+    if (_base != NumberBase::Decimalism) {
+        return Append(static_cast<unsigned int>(number), _base);
+    }
     char temp[64];
     sprintf(temp, "%d", number);
     return Append(temp);
@@ -137,24 +140,61 @@ String& String::Append(const char* str)
     return Append(str, strlen(str));
 }
 
-String& String::Append(long long number)
+String& String::Append(long long number, NumberBase _base)
 {
+    if (_base != NumberBase::Decimalism) {
+        return Append(static_cast<unsigned long long>(number), _base);
+    }
     char temp[64];
     sprintf(temp, "%lld", number);
     return Append(temp);
 }
 
-String& String::Append(unsigned int number)
+String& String::Append(unsigned int number, NumberBase _base)
 {
-    char temp[64];
-    sprintf(temp, "%u", number);
+    char temp[64] = { 0 };
+    switch (_base)
+    {
+    case neapu::String::NumberBase::Decimalism:
+        sprintf(temp, "%u", number);
+        break;
+    case neapu::String::NumberBase::Binary: {
+        for (int i = 0; i < 32; i++) {
+            temp[i] = (number & 0x80000000) ? '1' : '0';
+            number <<= 1;
+        }
+    }
+        break;
+    case neapu::String::NumberBase::Hexadecimal:
+        sprintf(temp, "0x%08x", number);
+        break;
+    default:
+        break;
+    }
     return Append(temp);
 }
 
-String& String::Append(unsigned long long number)
+String& String::Append(unsigned long long number, NumberBase _base)
 {
-    char temp[64];
-    sprintf(temp, "%llu", number);
+    char temp[65];
+    switch (_base)
+    {
+    case neapu::String::NumberBase::Decimalism:
+        sprintf(temp, "%llu", number);
+        break;
+    case neapu::String::NumberBase::Binary:
+        for (int i = 0; i < 64; i++) {
+            temp[i] = (number & 0x8000000000000000) ? '1' : '0';
+            number <<= 1;
+        }
+        break;
+    case neapu::String::NumberBase::Hexadecimal:
+        sprintf(temp, "0x%016llx", number);
+        break;
+    default:
+        break;
+    }
+    
     return Append(temp);
 }
 
@@ -201,24 +241,24 @@ String& neapu::String::Argument(const char c)
     return Argument(String().Append(c));
 }
 
-String& neapu::String::Argument(int number)
+String& neapu::String::Argument(int number, NumberBase _base)
 {
-    return Argument(ToString(number));
+    return Argument(ToString(number, _base));
 }
 
-String& neapu::String::Argument(long long number)
+String& neapu::String::Argument(long long number, NumberBase _base)
 {
-    return Argument(ToString(number));
+    return Argument(ToString(number, _base));
 }
 
-String& neapu::String::Argument(unsigned int number)
+String& neapu::String::Argument(unsigned int number, NumberBase _base)
 {
-    return Argument(ToString(number));
+    return Argument(ToString(number, _base));
 }
 
-String& neapu::String::Argument(unsigned long long number)
+String& neapu::String::Argument(unsigned long long number, NumberBase _base)
 {
-    return Argument(ToString(number));
+    return Argument(ToString(number, _base));
 }
 
 String& neapu::String::Argument(double number)
@@ -467,24 +507,24 @@ String neapu::String::RemoveHeadAndTailSpace(String str)
     return str.Middle(begin, (size_t)end);
 }
 
-String neapu::String::ToString(int number)
+String neapu::String::ToString(int number, NumberBase _base)
 {
-    return String().Append(number);
+    return String().Append(number, _base);
 }
 
-String neapu::String::ToString(long long number)
+String neapu::String::ToString(long long number, NumberBase _base)
 {
-    return String().Append(number);
+    return String().Append(number, _base);
 }
 
-String neapu::String::ToString(unsigned int number)
+String neapu::String::ToString(unsigned int number, NumberBase _base)
 {
-    return String().Append(number);
+    return String().Append(number, _base);
 }
 
-String neapu::String::ToString(unsigned long long number)
+String neapu::String::ToString(unsigned long long number, NumberBase _base)
 {
-    return String().Append(number);
+    return String().Append(number, _base);
 }
 
 String neapu::String::ToString(double number)

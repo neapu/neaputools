@@ -1,3 +1,9 @@
+/* ************************************************************************************ *
+ * 说明：字符串类
+ * 最后修改：20220611
+ * 更新说明：
+ * 20220611：从整形转换成字符串时，增加对16进制和2进制的支持
+ * ************************************************************************************ */
 #pragma once
 #include "base_pub.h"
 #include <string.h>
@@ -8,6 +14,13 @@
 namespace neapu {
     class ByteArray;
     class NEAPU_BASE_EXPORT String {
+    public:
+        enum class NumberBase: char
+        {
+            Decimalism,
+            Binary,
+            Hexadecimal
+        };
     public:
         static size_t npos;
         static size_t end;
@@ -23,20 +36,20 @@ namespace neapu {
         String& Append(const char* data, size_t len);
         String& Append(const char* str);
         String& Append(const char c);
-        String& Append(int number);
-        String& Append(long long number);
-        String& Append(unsigned int number);
-        String& Append(unsigned long long number);
+        String& Append(int number, NumberBase _base = NumberBase::Decimalism);
+        String& Append(long long number, NumberBase _base = NumberBase::Decimalism);
+        String& Append(unsigned int number, NumberBase _base = NumberBase::Decimalism);
+        String& Append(unsigned long long number, NumberBase _base = NumberBase::Decimalism);
         String& Append(double number);
 
         String& Argument(const String& data);
         String& Argument(const char* data, size_t len);
         String& Argument(const char* str);
         String& Argument(const char c);
-        String& Argument(int number);
-        String& Argument(long long number);
-        String& Argument(unsigned int number);
-        String& Argument(unsigned long long number);
+        String& Argument(int number, NumberBase _base = NumberBase::Decimalism);
+        String& Argument(long long number, NumberBase _base = NumberBase::Decimalism);
+        String& Argument(unsigned int number, NumberBase _base = NumberBase::Decimalism);
+        String& Argument(unsigned long long number, NumberBase _base = NumberBase::Decimalism);
         String& Argument(double number);
 
         
@@ -134,10 +147,10 @@ namespace neapu {
     public:
         //去除头尾空格
         static String RemoveHeadAndTailSpace(String str);
-        static String ToString(int number);
-        static String ToString(long long number);
-        static String ToString(unsigned int number);
-        static String ToString(unsigned long long number);
+        static String ToString(int number, NumberBase _base = NumberBase::Decimalism);
+        static String ToString(long long number, NumberBase _base = NumberBase::Decimalism);
+        static String ToString(unsigned int number, NumberBase _base = NumberBase::Decimalism);
+        static String ToString(unsigned long long number, NumberBase _base = NumberBase::Decimalism);
         static String ToString(double number);
     protected:
         void extend(size_t len);
