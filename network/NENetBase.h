@@ -59,8 +59,8 @@ namespace neapu {
 		std::map<EventHandle, std::shared_ptr<Event>> m_eventList;
 #ifndef _WIN32
 		ThreadPoll<std::function<void()>> m_threadPoll;
-		SafeQueue<evutil_socket_t> m_readQueue;
-		SafeQueue<evutil_socket_t> m_writeQueue;
+		SafeQueue<EventHandle> m_readQueue;
+		SafeQueue<EventHandle> m_writeQueue;
 		int m_running = 0;
 #endif
 	};

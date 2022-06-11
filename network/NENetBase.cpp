@@ -52,13 +52,23 @@ void neapu::NetBase::SetLastError(int _err, String _errstr)
 void neapu::NetBase::WorkThread()
 {
 	while (m_running) {
-		evutil_socket_t _fd;
-		if (m_readQueue.dequeue(_fd))
+		EventHandle handle;
+		if (m_readQueue.dequeue(handle))
 		{
-			OnReadReady(_fd);
+			if (m_eventList.find(handle) != m_eventList.end()){
+				OnReadReady(m_eventList[handle]->fd, handle);
+				if(m_eventList[handle]->_cb){
+					m_eventList[handle]->_cb(m_eventList[handle]->fd, handle);
+				}
+			}
 		}
-		if (m_writeQueue.dequeue(_fd)) {
-			OnWriteReady(_fd);
+		if (m_writeQueue.dequeue(handle)) {
+			if (m_eventList.find(handle) != m_eventList.end()){
+				OnWriteReady(m_eventList[handle]->fd, handle);
+				if(m_eventList[handle]->_cb){
+					m_eventList[handle]->_cb(m_eventList[handle]->fd, handle);
+				}
+			}
 		}
 	}
 }
@@ -91,16 +101,24 @@ void neapu::NetBase::OnWriteReady(evutil_socket_t _socket, EventHandle _handle)
 void neapu::NetBase::OnFileDescriptorCallback(evutil_socket_t _fd, EventType _type, EventHandle _handle)
 {
 	if (_type & EventType::Read) {
+#ifdef _WIN32
 		OnReadReady(_fd, _handle);
 		if (m_eventList.find(_handle) != m_eventList.end() && m_eventList[_handle]->_cb) {
 			m_eventList[_handle]->_cb(_fd, _handle);
 		}
+#else
+		m_readQueue.enqueue(_handle);
+#endif
 	}
 	if (_type & EventType::Write) {
+#ifdef _WIN32
 		OnWriteReady(_fd, _handle);
 		if (m_eventList.find(_handle) != m_eventList.end() && m_eventList[_handle]->_cb) {
 			m_eventList[_handle]->_cb(_fd, _handle);
 		}
+#else
+		m_writeQueue.enqueue(_handle);
+#endif
 	}
 }
 
