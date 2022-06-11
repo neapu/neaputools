@@ -6,18 +6,10 @@
 void neapu::EventBase::FileDescriptorCallback(evutil_socket_t fd, short events, void* user_data)
 {
     auto ev = reinterpret_cast<Event*>(user_data);
-    if (events & EV_READ) {
-        if (ev->fdcb) {
-            ev->fdcb(fd, EventType::Read, ev->handle);
-        }
-        ev->eventBase->OnFileDescriptorCallback(fd, EventType::Read, ev->handle);
+    if (ev->fdcb) {
+        ev->fdcb(fd, static_cast<EventType>(events & (EventType::Read | EventType::Write)), ev->handle);
     }
-    if (events & EV_WRITE) {
-        if (ev->fdcb) {
-            ev->fdcb(fd, EventType::Write, ev->handle);
-        }
-        ev->eventBase->OnFileDescriptorCallback(fd, EventType::Write, ev->handle);
-    }
+    ev->eventBase->OnFileDescriptorCallback(fd, static_cast<EventType>(events & (EventType::Read | EventType::Write)), ev->handle);
 }
 
 void neapu::EventBase::SignalCallback(evutil_socket_t fd, short events, void* user_data)
@@ -36,6 +28,21 @@ void neapu::EventBase::TimerCallback(evutil_socket_t fd, short events, void* use
         ev->timercb(ev->handle);
     }
     ev->eventBase->OnTimerCallback(ev->handle);
+}
+
+neapu::EventBase::EventBase(EventBase&& _eb) noexcept
+{
+    m_eb = _eb.m_eb;
+    m_events = std::move(_eb.m_events);
+    m_callback = std::move(_eb.m_callback);
+}
+
+neapu::EventBase::~EventBase()
+{
+    if (m_eb) {
+        event_base_free(m_eb);
+        m_eb = nullptr;
+    }
 }
 
 int neapu::EventBase::Init(int _iocpThreadCount)

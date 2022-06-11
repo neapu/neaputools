@@ -34,6 +34,11 @@ namespace neapu {
         static void SignalCallback(evutil_socket_t fd, short events, void* user_data);
         static void TimerCallback(evutil_socket_t fd, short events, void* user_data);
     public:
+        EventBase() noexcept {}
+        EventBase(const EventBase&) = delete;
+        EventBase(EventBase&& _eb) noexcept;
+        virtual ~EventBase();
+
         enum EventType: short
         {
             None = 0,

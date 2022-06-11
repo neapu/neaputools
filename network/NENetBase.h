@@ -11,57 +11,52 @@
 #include <NESafeQueue.h>
 #include <functional>
 #include <map>
+#include "NEEventBase.h"
 #include "NENetworkError.h"
 #include "network_pub.h"
 
-#ifndef evutil_socket_t
-#ifdef WIN32
-#define evutil_socket_t intptr_t
-#else
-#define evutil_socket_t int
-#endif // WIN32
-#endif // !evutil_socket_t
-#ifndef EV_READ
-#define EV_READ 0x02
-#endif
-#ifndef EV_WRITE
-#define EV_WRITE 0x04
-#endif
+using SocketEventCallback = std::function<void(evutil_socket_t, EventHandle)>;
 
-struct event_base;
-struct event;
 namespace neapu {
-	class NEAPU_NETWORK_EXPORT NetBase {
-		friend void cbSocketEvent(evutil_socket_t fd, short events, void* user_data);
-		friend void cbSignalEvent(evutil_socket_t fd, short events, void* user_data);
+	class NEAPU_NETWORK_EXPORT NetBase : public EventBase {
 	public:
-		NetBase() {}
-		NetBase(const NetBase&) = delete;
-		NetBase(NetBase&&) noexcept;
-		virtual ~NetBase() noexcept;
 		int Run();
 		void Stop();
 		NetworkError GetError() { return m_err; }
+		int Init(int _threadNum);
+
+		EventHandle AddSocket(evutil_socket_t _fd,
+			EventType _events,
+			bool _persist = false,
+			SocketEventCallback _cb = {}
+		);
+		
+		void OnReadReady(SocketEventCallback _cb);
+		void OnWriteReady(SocketEventCallback _cb);
 	protected:
-		int InitEvent(int _threadNum);
-		int AddEvent(int _fd, short _ev);
-		int AddSignal(int _signal);
-		void RemoveSocket(int _fd);
-		void RemoveSignal(int _signal);
+		virtual void OnReadReady(evutil_socket_t _socket, EventHandle _handle);
+		virtual void OnWriteReady(evutil_socket_t _socket, EventHandle _handle);
+
+		virtual void OnFileDescriptorCallback(evutil_socket_t _fd, EventType _type, EventHandle _handle) override;
+
 		void SetLastError(int _err, String _errstr);
 #ifndef _WIN32
 		virtual void WorkThread();
 #endif
-		virtual void OnReadReady(int _fd) = 0;
-		virtual void OnWriteReady(int _fd) = 0;
-		virtual void OnSignalReady(int _signal) = 0;
-		virtual void Stoped() {}
 	protected:
-		event_base* m_eb = nullptr;
 		int m_threadNum = 0;
-		std::map<int, event*> m_socketEventList;
-		std::map<int, event*> m_signalEventList;
 		NetworkError m_err;
+		struct {
+			SocketEventCallback readReady;
+			SocketEventCallback writeReady;
+		} m_callback;
+
+		using Event = struct {
+			evutil_socket_t fd;
+			EventHandle handle;
+			SocketEventCallback _cb;
+		};
+		std::map<EventHandle, std::shared_ptr<Event>> m_eventList;
 #ifndef _WIN32
 		ThreadPoll<std::function<void()>> m_threadPoll;
 		SafeQueue<evutil_socket_t> m_readQueue;
@@ -69,6 +64,4 @@ namespace neapu {
 		int m_running = 0;
 #endif
 	};
-	void cbSocketEvent(evutil_socket_t fd, short events, void* user_data);
-	void cbSignalEvent(evutil_socket_t fd, short events, void* user_data);
 }
