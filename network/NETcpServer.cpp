@@ -19,13 +19,11 @@ using namespace neapu;
 int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
 {
     m_address = _addr;
-#ifdef WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        perror("WSAStartup error");
-        return 0;
+    int rc = NetBase::Init(_threadNum);
+    if (rc < 0) {
+        Stop();
+        return rc;
     }
-#endif // WIN32
 
     if (m_address.IsIPv4()) {
         m_listenFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -40,7 +38,7 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
     }
 
     //设置非阻塞
-    int rc = evutil_make_socket_nonblocking(m_listenFd);
+    rc = evutil_make_socket_nonblocking(m_listenFd);
     if (0 != rc) {
         return ERROR_SOCKET_NONBLOCK;
     }
@@ -71,20 +69,10 @@ int neapu::TcpServer::Init(int _threadNum, const IPAddress& _addr)
         }
     }
 
-    rc = NetBase::InitEvent(_threadNum);
-    if (rc < 0) {
-        Stop();
-        return rc;
-    }
+    
 
-
-    rc = NetBase::AddEvent(m_listenFd, EV_READ|EV_PERSIST|EV_ET);
-    if (rc < 0) {
-        Stop();
-        return rc;
-    }
-    rc = NetBase::AddSignal(SIGINT);
-    if (rc < 0) {
+    m_listenHandle = this->AddSocket(m_listenFd, EventType::Read, true);
+    if (m_listenHandle == EmptyHandle) {
         Stop();
         return rc;
     }
@@ -101,8 +89,9 @@ int neapu::TcpServer::Listen()
     return 0;
 }
 
-void neapu::TcpServer::Stoped()
+void neapu::TcpServer::OnEventLoopStoped()
 {
+    NetBase::OnEventLoopStoped();
     if (m_listenFd) {
         evutil_closesocket(m_listenFd);
         m_listenFd = 0;
@@ -174,7 +163,7 @@ void neapu::TcpServer::OnChannelWrite(std::shared_ptr<neapu::NetChannel> _client
     }
 }
 
-int TcpServer::OnClientReadReady(int _fd)
+int TcpServer::OnClientReadReady(int _fd, EventHandle _handle)
 {
     auto client = m_channels[_fd];
     
@@ -196,34 +185,28 @@ int TcpServer::OnClientReadReady(int _fd)
     }
     
     if (client->IsClosed()) { //如果链接被关闭了就清理
+        this->ReleaseEvent(_handle);
         ReleaseClient(_fd);
     }
     return 0;
 }
 
-void neapu::TcpServer::OnReadReady(int _fd)
+void neapu::TcpServer::OnReadReady(evutil_socket_t _socket, EventHandle _handle)
 {
-    if (_fd == m_listenFd) {
-        OnListenerAccept(_fd);
+    if (static_cast<int>(_socket) == m_listenFd) {
+        OnListenerAccept(static_cast<int>(_socket));
     }
     else {
-        OnClientReadReady(_fd);
+        OnClientReadReady(static_cast<int>(_socket), _handle);
     }
 }
 
-void neapu::TcpServer::OnWriteReady(int _fd)
+void neapu::TcpServer::OnWriteReady(evutil_socket_t _socket, EventHandle _handle)
 {
-    if (m_channels.find(_fd) != m_channels.end()) {
-        OnChannelWrite(m_channels[_fd]);
+    if (m_channels.find(static_cast<int>(_socket)) != m_channels.end()) {
+        OnChannelWrite(m_channels[static_cast<int>(_socket)]);
     }
     
-}
-
-void neapu::TcpServer::OnSignalReady(int _signal)
-{
-    if (_signal == SIGINT) {
-        Stop();
-    }
 }
 
 void neapu::TcpServer::OnListenerAccept(int fd)
@@ -257,7 +240,7 @@ void neapu::TcpServer::OnListenerAccept(int fd)
         return;
     }
 
-    NetBase::AddEvent(accp_fd, EV_READ|EV_PERSIST|EV_ET);
+    (void)this->AddSocket(accp_fd, EventType::Read, true);
     OnAccepted(m_channels[accp_fd]);
 }
 
@@ -273,9 +256,17 @@ void neapu::TcpServer::AddClient(int fd, const IPAddress& _addr)
 void neapu::TcpServer::ReleaseClient(int fd)
 {
     std::unique_lock<std::recursive_mutex> lock(m_channelMutex);
-    NetBase::RemoveSocket(fd);
     if (m_channels.find(fd) != m_channels.end()) {
         m_channels[fd]->Close();
         m_channels.erase(fd);
     }
+}
+
+void neapu::TcpServer::Stop()
+{
+    if (m_listenHandle) {
+        this->ReleaseEvent(m_listenHandle);
+        m_listenHandle = EmptyHandle;
+    }
+    NetBase::Stop();
 }

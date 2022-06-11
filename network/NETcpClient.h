@@ -24,15 +24,14 @@ namespace neapu {
 
 		IPAddress GetAddress() const { return m_address; }
 	protected:
-		virtual void OnSignalReady(int _signal) override;
 		virtual void OnWrite();
 		virtual void OnRecvData(std::shared_ptr<NetChannel> _channel);
 		virtual void OnError(const NetworkError& _err);
 		virtual void OnClosed();
 
-		virtual void Stoped() override;
-		virtual void OnReadReady(int _fd) override;
-		virtual void OnWriteReady(int _fd) override { OnWrite(); }
+		virtual void OnEventLoopStoped() override;
+		virtual void OnReadReady(evutil_socket_t _socket, EventHandle _handle) override;
+		virtual void OnWriteReady(evutil_socket_t _socket, EventHandle _handle) override { OnWrite(); }
 
 	private:
 		struct {

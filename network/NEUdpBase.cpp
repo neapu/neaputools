@@ -10,6 +10,7 @@ constexpr auto BUFFER_SIZE = 65536; //UDP协议报文长度
 neapu::UdpBase::~UdpBase() noexcept
 {
     Stop();
+    Close();
 }
 
 neapu::UdpBase::UdpBase(UdpBase&& _ub) noexcept
@@ -20,16 +21,17 @@ int neapu::UdpBase::Init(int _threads, const IPAddress& _addr)
 {
     if (m_udpFd) {
         Stop();
+        // 如果没进消息循环 Stop 什么也不会做，这就需要再Close一下
+        Close();
     }
     m_address = _addr;
-#ifdef WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        perror("WSAStartup error");
-        return 0;
-    }
-#endif // WIN32
+    int rc = 0;
 
+    rc = NetBase::Init(_threads);
+    if (rc < 0) {
+        Close();
+        return rc;
+    }
 
     //创建套接字
     if (m_address.IsIPv4()) {
@@ -44,7 +46,7 @@ int neapu::UdpBase::Init(int _threads, const IPAddress& _addr)
         return ERROR_SOCKET_OPEN;
     }
 
-    int rc = evutil_make_socket_nonblocking(m_udpFd);
+    rc = evutil_make_socket_nonblocking(m_udpFd);
     if (0 != rc) {
         return ERROR_SOCKET_NONBLOCK;
     }
@@ -70,21 +72,11 @@ int neapu::UdpBase::Init(int _threads, const IPAddress& _addr)
         }
     }
 
-    rc = NetBase::InitEvent(_threads);
-    if (rc < 0) {
-        Stop();
-        return rc;
-    }
+    
 
-    rc = AddEvent(m_udpFd, EV_READ|EV_PERSIST|EV_ET);
-    if (rc < 0) {
-        Stop();
-        return rc;
-    }
-
-    rc = AddSignal(SIGINT);
-    if (rc < 0) {
-        Stop();
+    m_eventHandle = AddSocket(m_udpFd, EventType::Read, true);
+    if (m_eventHandle == EmptyHandle) {
+        Close();
         return rc;
     }
     
@@ -132,12 +124,10 @@ int neapu::UdpBase::Send(const ByteArray& _data, const IPAddress& _addr)
     return rc;
 }
 
-void neapu::UdpBase::Stoped()
+void neapu::UdpBase::OnEventLoopStoped()
 {
-    if (m_udpFd) {
-        evutil_closesocket(m_udpFd);
-        m_udpFd = 0;
-    }
+    NetBase::OnEventLoopStoped();
+    Close();
 }
 
 neapu::UdpBase& neapu::UdpBase::OnRecvData(std::function<void(const ByteArray&, const IPAddress&)> _cb)
@@ -159,15 +149,16 @@ void neapu::UdpBase::OnRecvData(const ByteArray& _data, const IPAddress& _addr)
     }
 }
 
-void neapu::UdpBase::OnWriteReady(int /*_fd*/)
+void neapu::UdpBase::OnWriteReady(evutil_socket_t _socket, EventHandle _handle)
 {
     if (m_callback.writableCallback) {
         m_callback.writableCallback();
     }
 }
 
-void neapu::UdpBase::OnReadReady(int _fd)
+void neapu::UdpBase::OnReadReady(evutil_socket_t _socket, EventHandle _handle)
 {
+    int _fd = static_cast<int>(_socket);
     ByteArray data;
     int readSize = 0;
     IPAddress addr;
@@ -188,9 +179,18 @@ void neapu::UdpBase::OnReadReady(int _fd)
     OnRecvData(data, addr);
 }
 
-void neapu::UdpBase::OnSignalReady(int _signal)
+void neapu::UdpBase::Close()
 {
-    if (_signal == SIGINT) {
-        this->Stop();
+    if (m_udpFd) {
+        evutil_closesocket(m_udpFd);
+        m_udpFd = 0;
     }
+}
+
+void neapu::UdpBase::Stop()
+{
+    if (m_eventHandle) {
+        ReleaseEvent(m_eventHandle);
+    }
+    NetBase::Stop();
 }

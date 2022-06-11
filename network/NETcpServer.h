@@ -17,6 +17,7 @@ public:
     TcpServer() {}
     int Init(int _threadNum, const IPAddress& _addr);
     int Listen();
+    void Stop();
     
     TcpServer& OnRecvData(TcpServerCallback _cb);
     TcpServer& OnAccepted(TcpServerCallback _cb);
@@ -31,13 +32,11 @@ protected:
     virtual void OnChannelClosed(std::shared_ptr<neapu::NetChannel> _client);
     virtual void OnChannelError(std::shared_ptr<neapu::NetChannel> _client);
     virtual void OnChannelWrite(std::shared_ptr<neapu::NetChannel> _client);
-    virtual void OnSignalReady(int _signal) override;
 
-    virtual int OnClientReadReady(int _fd);
+    virtual int OnClientReadReady(int _fd, EventHandle _handle);
     void OnListenerAccept(int fd);
     void AddClient(int fd, const IPAddress& _addr);
     void ReleaseClient(int fd);
-    virtual void Stoped() override;
 protected:
     
     struct {
@@ -49,13 +48,15 @@ protected:
     } m_callback;
 
 private:
-    virtual void OnReadReady(int _fd) override;
-    virtual void OnWriteReady(int _fd) override;
+    virtual void OnReadReady(evutil_socket_t _socket, EventHandle _handle) override;
+    virtual void OnWriteReady(evutil_socket_t _socket, EventHandle _handle) override;
+    virtual void OnEventLoopStoped() override;
 
 private:
     int m_listenFd = 0;
+    EventHandle m_listenHandle = EmptyHandle;
     IPAddress m_address;
-    std::map<int,std::shared_ptr<NetChannel>> m_channels;
+    std::map<int, std::shared_ptr<NetChannel>> m_channels;
     std::recursive_mutex m_channelMutex;
 };
 }

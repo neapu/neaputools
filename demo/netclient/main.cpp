@@ -3,19 +3,9 @@
 #include <NELogger.h>
 #include <NEUtil.h>
 #include <neapu-config.h>
+#include <signal.h>
 using namespace neapu;
 using namespace std;
-
-void InputThread(TcpClient* _cli)
-{
-	char buf[1024];
-	while (true) {
-		string str;
-		getline(cin, str);
-		str += "\r\n";
-		_cli->Send(str.c_str(), str.length());
-	}
-}
 
 int main()
 {
@@ -47,11 +37,21 @@ int main()
 
 	cli.OnRecvData([&](shared_ptr<NetChannel> _channel) {
 		Logger(LM_INFO) << "Receive Data:" << _channel->ReadAll();
-	}).OnClosed([]() {
+		});
+	
+	cli.OnClosed([]() {
 		Logger(LM_INFO) << "Closed";
 	});
 
-	thread(InputThread, &cli).detach();
+	cli.AddSignal(SIGINT, false, [&](int _signal, EventHandle _handle) {
+		Logger(LM_INFO) << "SIGINT trigger";
+		cli.Stop();
+		});
+
+	cli.AddTimer(1000, true, [&](EventHandle) {
+		String testData = "test data";
+		cli.Send(testData);
+		});
 
 	cli.Run();
 	return 0;

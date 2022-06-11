@@ -25,21 +25,23 @@ namespace neapu {
 		UdpBase& OnRecvData(std::function<void(const ByteArray&, const IPAddress&)> _cb);
 		UdpBase& OnWriteReady(std::function<void()> _cb);
 
+		void Stop();
+		void Close();
+
 	protected:
 		virtual void OnRecvData(const ByteArray& _data, const IPAddress& _addr);
-		virtual void OnWriteReady(int _fd);
+		virtual void OnWriteReady(evutil_socket_t _socket, EventHandle _handle) override;
 	private:
-		virtual void OnReadReady(int _fd);
-		virtual void OnSignalReady(int _signal);
-		virtual void Stoped() override;
+		virtual void OnReadReady(evutil_socket_t _socket, EventHandle _handle) override;
+		virtual void OnEventLoopStoped() override;
 
 	protected:
 		using UdpBaseCallback = struct {
 			std::function<void(const ByteArray&, const IPAddress&)> recvDataCallback;
 			std::function<void()> writableCallback;
-			uint64_t userData;
 		};
 		int m_udpFd = 0;
+		EventHandle m_eventHandle = EmptyHandle;
 		UdpBaseCallback m_callback;
 		IPAddress m_address;
 	};

@@ -3,6 +3,7 @@
 #include <NEUtil.h>
 #include <neapu-config.h>
 #include <NEHttpHandle.h>
+#include <signal.h>
 using namespace neapu;
 
 inline constexpr unsigned long long operator"" _kb(unsigned long long i)
@@ -38,6 +39,10 @@ int main()
 	server.Get("/api/get_data", [](std::shared_ptr<HttpHandle> _handle) {
 		_handle->SetContentType(HttpHandle::ContentType::Json);
 		_handle->SendResponse("{\"data\":\"test data\"}");
+		});
+	server.AddSignal(SIGINT, false, [&](int, EventHandle) {
+		Logger(LM_INFO) << "SIGINT trigger";
+		server.Stop();
 		});
 	rc = server.Listen();
 	if (rc < 0) {

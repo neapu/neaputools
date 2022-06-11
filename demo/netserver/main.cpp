@@ -4,6 +4,7 @@
 #include "NETcpServer.h"
 #include "NEByteArray.h"
 #include <neapu-config.h>
+#include <signal.h>
 
 using namespace neapu;
 int main(int argc, char** argv)
@@ -31,16 +32,27 @@ int main(int argc, char** argv)
     Logger(LM_INFO) << "Server Start:" << tcpServer.GetAddress();
     tcpServer.OnAccepted([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_INFO) << "Client Accept:" << *_netChannel;
-    }).OnRecvData([&](std::shared_ptr<NetChannel> _netChannel) {
+        });
+    
+    tcpServer.OnRecvData([&](std::shared_ptr<NetChannel> _netChannel) {
         ByteArray data = _netChannel->ReadAll();
         Logger(LM_INFO) << "Receive From:" << *_netChannel;
         Logger(LM_INFO) << "Recvice Data:" << data;
         _netChannel->Write(data);
-    }).OnChannelClosed([&](std::shared_ptr<NetChannel> _netChannel) {
+        });
+    
+    tcpServer.OnChannelClosed([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_INFO) << "Client Close:" << *_netChannel;
-    }).OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {
+        });
+    
+    tcpServer.OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_ERROR) << "Channel Error [" << *_netChannel << "]:" << _netChannel->GetError();
     });
+
+    tcpServer.AddSignal(SIGINT, false, [&](int _signal, EventHandle _handle) {
+        Logger(LM_INFO) << "SIGINT trigger";
+        tcpServer.Stop();
+        });
 
     rc = tcpServer.Listen();
     if (rc < 0) {

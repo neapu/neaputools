@@ -15,13 +15,10 @@ using namespace neapu;
 int neapu::TcpClient::Connect(const IPAddress& _addr)
 {
     m_address = _addr;
-#ifdef WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        perror("WSAStartup error");
-        return -1;
+    int rc = NetBase::Init(1);
+    if (rc < 0) {
+        return rc;
     }
-#endif
     
     if (_addr.IsIPv4()) {
         m_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,19 +51,18 @@ int neapu::TcpClient::Connect(const IPAddress& _addr)
     }
     
 
-    int rc = evutil_make_socket_nonblocking(m_fd);
+    rc = evutil_make_socket_nonblocking(m_fd);
     if (0 != rc) {
         return ERROR_SOCKET_NONBLOCK;
     }
 
-    NetBase::InitEvent(1);
-    NetBase::AddEvent(m_fd, EV_READ|EV_PERSIST|EV_ET);
-
-    rc = NetBase::AddSignal(SIGINT);
-    if (rc < 0) {
-        Stop();
-        return rc;
+    
+    if (AddSocket(m_fd, EventType::Read, true) == EmptyHandle) {
+        evutil_closesocket(m_fd);
+        m_fd = 0;
+        return ERROR_ADD_SOCKET;
     }
+
     
     m_channel = std::shared_ptr<neapu::NetChannel>(new neapu::NetChannel(m_fd, m_address));
 
@@ -138,21 +134,24 @@ void neapu::TcpClient::OnClosed()
     }
 }
 
-void neapu::TcpClient::Stoped()
+void neapu::TcpClient::OnEventLoopStoped()
 {
+    NetBase::OnEventLoopStoped();
     if (m_fd) {
         evutil_closesocket(m_fd);
         m_fd = 0;
     }
 }
 
-void neapu::TcpClient::OnReadReady(int _fd)
+void neapu::TcpClient::OnReadReady(evutil_socket_t _socket, EventHandle _handle)
 {
+    int _fd = static_cast<int>(_socket);
     if (_fd != m_fd)return;
     int rc = recv(_fd, nullptr, 0, MSG_PEEK);
     int err = evutil_socket_geterror(_fd);
     if (err == RECV_EOF_EN) {//连接正常关闭
         OnClosed();
+        ReleaseEvent(_handle);
         Stop();
         return;
     }
@@ -160,6 +159,7 @@ void neapu::TcpClient::OnReadReady(int _fd)
         SetLastError(err, evutil_socket_error_to_string(err));
         m_channel->SetError(m_err);
         OnError(m_err);
+        ReleaseEvent(_handle);
         Stop();
         return;
     }
@@ -168,47 +168,9 @@ void neapu::TcpClient::OnReadReady(int _fd)
     }
 
     if (m_channel->IsClosed()) { //如果链接被关闭了就清理
+        ReleaseEvent(_handle);
         Stop();
     }
-
-    //ByteArray data;
-    //char buf[BUF_SIZE];
-    //int readSize;
-    //for (;;) {
-    //    readSize = recv(_fd, buf, BUF_SIZE, 0);
-    //    if (readSize == EOF) { //接收完成
-    //        int err = evutil_socket_geterror(_fd);
-    //        if (err != 0 && err != 10035) { //对面意外掉线
-    //            SetLastError(err, evutil_socket_error_to_string(err));
-    //            OnError(m_err);
-    //            Stop();
-    //        }
-    //        break;
-    //    }
-    //    else if (readSize == 0) { //对面主动断开
-    //        Stop();
-    //        OnClosed();
-    //        return;
-    //    }
-    //    else if (readSize < 0) { //发生错误
-    //        int err = evutil_socket_geterror(_fd);
-    //        SetLastError(err, evutil_socket_error_to_string(err));
-    //        OnError(m_err);
-    //        Stop();
-    //        return;
-    //    }
-    //    data.Append(buf, readSize);
-    //}
-    //OnRecvData(data);
-    //return;
-}
-
-void neapu::TcpClient::OnSignalReady(int _signal)
-{
-    if (_signal == SIGINT) {
-        Stop();
-    }
-    
 }
 
 int neapu::TcpClientSync::Connect(const IPAddress& _addr)

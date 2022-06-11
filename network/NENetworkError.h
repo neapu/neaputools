@@ -17,6 +17,7 @@
 #define ERROR_EVENT_NEW			-12
 #define ERROR_EVENT_UNINIT		-13
 #define ERROR_WSASTARTUP		-14
+#define ERROR_ADD_SOCKET		-15
 
 namespace neapu {
 	using NetworkError = struct tagNetworkError {

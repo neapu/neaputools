@@ -3,6 +3,7 @@
 #include <NELogger.h>
 #include <NEUtil.h>
 #include <neapu-config.h>
+#include <signal.h>
 using namespace std;
 using namespace neapu;
 
@@ -31,6 +32,10 @@ int main()
 	udp.OnRecvData([&](const ByteArray& _data, const IPAddress& _addr) {
 			Logger(LM_INFO) << "Receive From:" << _addr << " Data:" << _data;
 			udp.Send(_data, _addr);
+		});
+	udp.AddSignal(SIGINT, false, [&](int _signal, EventHandle _handle) {
+		Logger(LM_INFO) << "SIGINT trigger";
+		udp.Stop();
 		});
 	rc = udp.Run();
 	Logger(LM_INFO) << "Server Stop:" << rc;
