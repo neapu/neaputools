@@ -14,6 +14,11 @@
 
 #define LOG neapu::Logger
 
+#define LOG_DEADLY neapu::Logger(LM_DEADLY)
+#define LOG_ERROR neapu::Logger(LM_ERROR)
+#define LOG_INFO neapu::Logger(LM_INFO)
+#define LOG_DEBUG neapu::Logger(LM_DEBUG)
+
 namespace neapu{
     class NEAPU_BASE_EXPORT Logger
     {
