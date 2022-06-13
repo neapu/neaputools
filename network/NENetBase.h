@@ -36,7 +36,6 @@ namespace neapu {
 	protected:
 		virtual void OnReadReady(evutil_socket_t _socket, EventHandle _handle);
 		virtual void OnWriteReady(evutil_socket_t _socket, EventHandle _handle);
-		virtual void OnEventLoopStoped();
 
 		virtual void OnFileDescriptorCallback(evutil_socket_t _fd, EventType _type, EventHandle _handle) override;
 

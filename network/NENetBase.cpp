@@ -23,18 +23,24 @@ int neapu::NetBase::Init(int _threadNum)
 	if (rc < 0) {
 		return rc;
 	}
-#ifndef _WIN32
-	//初始化线程池
-	m_running = 1;
-	m_threadPoll.Init(m_threadNum, std::bind(&NetBase::WorkThread, this));
-#endif // !_WIN32
+
 	return rc;
 }
 
 
 int neapu::NetBase::Run()
 {
-	return EventBase::EventLoop();
+#ifndef _WIN32
+	//初始化线程池
+	m_running = 1;
+	m_threadPoll.Init(m_threadNum, std::bind(&NetBase::WorkThread, this));
+#endif // !_WIN32
+	int rc = EventBase::EventLoop();
+#ifndef _WIN32
+	m_running = 0;
+	m_threadPoll.Join();
+#endif
+	return rc;
 }
 
 void neapu::NetBase::Stop()
@@ -130,12 +136,4 @@ EventHandle neapu::NetBase::AddSocket(evutil_socket_t _fd, EventType _events, bo
 	}
 	m_eventList[rst] = std::shared_ptr<Event>(new Event{ _fd, rst, _cb });
 	return rst;
-}
-
-void neapu::NetBase::OnEventLoopStoped()
-{
-#ifndef _WIN32
-	m_running = 0;
-	m_threadPoll.Join();
-#endif
 }
