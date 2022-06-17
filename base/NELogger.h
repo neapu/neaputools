@@ -26,7 +26,7 @@ namespace neapu{
         Logger(int level);
         ~Logger();
 
-        static void setLogLevel(int nLogLevel);
+        static void setLogLevel(int nLogLevel, const String& strLogPath);
         static void setPrintLevel(int nPrintLevel);
 
         //template<class... Args>
@@ -56,5 +56,6 @@ namespace neapu{
         static FILE* m_pFile;
         static String m_strLogDate;
         static std::mutex m_fileMutex;
+        static String m_strLogPath;
     };
 }

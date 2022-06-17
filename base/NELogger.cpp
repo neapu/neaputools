@@ -18,6 +18,7 @@ int Logger::m_nPrintLevel = LM_DEBUG;
 FILE* Logger::m_pFile = nullptr;
 String Logger::m_strLogDate;
 std::mutex Logger::m_fileMutex;
+String Logger::m_strLogPath;
 
 Logger::Logger(int level)
     : m_nLevel(level)
@@ -45,9 +46,14 @@ Logger::~Logger()
     }
 }
 
-void Logger::setLogLevel(int nLogLevel)
+void Logger::setLogLevel(int nLogLevel, const String& strLogPath)
 {
-    const char* path = "./log";
+    if(strLogPath.IsEmpty())return;
+    m_strLogPath = strLogPath;
+    if(m_strLogPath.Back() != '/'){
+        m_strLogPath.Append('/');
+    }
+    const char* path = m_strLogPath.ToCString();
 #ifdef _WIN32
     if(0 != _access(path, 0))
     {
@@ -116,7 +122,7 @@ bool Logger::openFile()
     }
     m_strLogDate=temp;
     char szNewFile[128];
-    sprintf(szNewFile, "log/%s.log", temp);
+    sprintf(szNewFile, "%s%s.log", m_strLogPath.ToCString(), temp);
     if(m_pFile) fclose(m_pFile);
     m_pFile = fopen(szNewFile, "a");
     if(!m_pFile)return false;
