@@ -8,6 +8,18 @@ using namespace neapu;
 
 String HttpHandle::m_defaultContentType = "text/plain";
 
+HttpHandle::HttpHandle(const HttpHandle& _handle)
+{
+    m_channel = _handle.m_channel;
+    m_method = _handle.m_method;
+    m_path = _handle.m_path;
+    m_recvHeader = _handle.m_recvHeader;
+    m_recvBody = _handle.m_recvBody;
+    m_sendHeader = _handle.m_sendHeader;
+    m_stateCode = _handle.m_stateCode;
+    m_stateString = _handle.m_stateString;
+}
+
 int neapu::HttpHandle::AnalysisRequest(size_t _length)
 {
     ByteStream data = (ByteStream)m_channel->Read(_length);

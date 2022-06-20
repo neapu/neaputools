@@ -174,7 +174,7 @@ int TcpServer::OnClientReadReady(int _fd, EventHandle _handle)
         OnChannelClosed(client);
         client->Close();
     }
-    else if (err != 0) {
+    else if (err != 0 && err != RECV_EOF_EN) {
         SetLastError(err, evutil_socket_error_to_string(err));
         client->SetError(m_err);
         OnChannelError(client);

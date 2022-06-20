@@ -1,4 +1,5 @@
 #include "NEFile.h"
+#include <sys/stat.h>
 using namespace neapu;
 
 constexpr auto BUF_SIZE = 1024;
@@ -50,6 +51,12 @@ bool neapu::File::Open(OpenMode _type, bool _binary)
         return true;
     }
 #else
+    struct stat stat_buf;
+    int rc = stat(m_filename.ToCString(), &stat_buf);
+    //只允许打开普通文件
+    if(!S_ISREG(stat_buf.st_mode)){
+        return false;
+    }
     m_file = fopen(m_filename.ToCString(), mode.ToCString());
     if (m_file) {
         return true;

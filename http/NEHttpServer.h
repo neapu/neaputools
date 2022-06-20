@@ -26,9 +26,10 @@ namespace neapu {
         * 例如：/home/*
         * 不支持在路径中间加通配符
         *********************************/
-        HttpServer& Get(const String _path, HttpServerCallback);
-        HttpServer& Post(const String _path, HttpServerCallback);
-        HttpServer& All(const String _path, HttpServerCallback);
+        HttpServer& Get(const String& _path, HttpServerCallback);
+        HttpServer& Post(const String& _path, HttpServerCallback);
+        HttpServer& All(const String& _path, HttpServerCallback);
+        void AddRouter(const String& _path, HttpMethod _method, HttpServerCallback _cb);
 
         /****************************************
         * 开启或关闭Http日志打印

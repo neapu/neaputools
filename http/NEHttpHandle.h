@@ -21,6 +21,7 @@ namespace neapu {
         };
     public:
         HttpHandle(std::shared_ptr<NetChannel> _channel) : m_channel(_channel) {}
+        HttpHandle(const HttpHandle&);
 
         /********************************
         * 作为服务端
@@ -61,6 +62,8 @@ namespace neapu {
         void SetPath(String _path) { m_path = _path; }
         HttpMethod Method() const { return m_method; }
         void SetMethod(HttpMethod _method) { m_method = _method; }
+
+        ByteArray GetRecvBody() { return m_recvBody; }
     public:
         /**********************************
         * 设定默认Content-Type

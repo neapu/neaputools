@@ -25,22 +25,27 @@ int neapu::HttpServer::Init(int _threadNum, const IPAddress& _addr)
     return rc;
 }
 
-HttpServer& neapu::HttpServer::Get(const String _path, HttpServerCallback _cb)
+HttpServer& neapu::HttpServer::Get(const String& _path, HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::GET);
     return *this;
 }
 
-HttpServer& neapu::HttpServer::Post(const String _path, HttpServerCallback _cb)
+HttpServer& neapu::HttpServer::Post(const String& _path, HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::POST);
     return *this;
 }
 
-HttpServer& neapu::HttpServer::All(const String _path, HttpServerCallback _cb)
+HttpServer& neapu::HttpServer::All(const String& _path, HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::ALL);
     return *this;
+}
+
+void neapu::HttpServer::AddRouter(const String& _path, HttpMethod _method, HttpServerCallback _cb)
+{
+    m_router.Insert(_path, _cb, _method);
 }
 
 void neapu::HttpServer::HttpLog(bool _log)

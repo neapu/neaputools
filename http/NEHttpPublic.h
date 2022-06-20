@@ -10,9 +10,11 @@
 // typedef unsigned long long size_t;
 #endif
 
-enum class HttpMethod
-{
-    ALL,
-    GET,
-    POST
-};
+namespace neapu{
+    enum class HttpMethod
+    {
+        ALL,
+        GET,
+        POST
+    };
+}
