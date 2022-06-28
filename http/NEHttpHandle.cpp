@@ -50,7 +50,7 @@ int neapu::HttpHandle::AnalysisRequest(size_t _length)
         String key = String::RemoveHeadAndTailSpace(headLine.Middle(0, index - 1));
         String value = String::RemoveHeadAndTailSpace(headLine.Middle(index + 1, String::npos));
 
-        m_recvHeader[key] == value;
+        m_recvHeader[key] = value;
     }
 
     //接收body
