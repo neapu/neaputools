@@ -4,6 +4,7 @@
 #include "NERouter.h"
 
 namespace neapu {
+    using HttpHandlePtr = std::shared_ptr<neapu::HttpHandle>;
     class NEAPU_HTTP_EXPORT HttpServer :public TcpServer {
     private:
         class StaticFileCache {
