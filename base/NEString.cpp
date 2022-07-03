@@ -490,7 +490,7 @@ bool neapu::String::Contain(const String& _str) const
 }
 
 //去除头尾空格
-String neapu::String::RemoveHeadAndTailSpace(String str)
+String neapu::String::RemoveHeadAndTailSpace(String&& str)
 {
     size_t begin;
     for (begin = 0; begin < str.Length(); begin++) {

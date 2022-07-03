@@ -113,7 +113,7 @@ void neapu::HttpServer::OnRequestStaticFile(
     if (m_staticFileCache.find(_reqPath) != m_staticFileCache.end()) {
         auto &cache = m_staticFileCache[_reqPath];
         if (m_staticCacheTimeout && time(nullptr) - cache.m_lastupd < m_staticCacheTimeout) {
-            _handle->SetSendHeader("Content-Type", cache.m_contentType);
+            _handle->AddSendHeader("Content-Type", cache.m_contentType);
             _handle->SendResponse(cache.m_data);
             return;
         }
@@ -134,11 +134,11 @@ void neapu::HttpServer::OnRequestStaticFile(
         if (data.Length() < m_staticFileCacheSize) {
             m_staticFileCache[_reqPath].update(data, contentType);
         }
-        _handle->SetSendHeader("Content-Type", contentType);
+        _handle->AddSendHeader("Content-Type", contentType);
         _handle->SendResponse(data);
     } else if (file.Extension().IsEmpty() && m_historyMode.enable) {
         if (m_staticCacheTimeout && time(nullptr) - m_historyMode.cache.m_lastupd < m_staticCacheTimeout) {
-            _handle->SetSendHeader("Content-Type", m_historyMode.cache.m_contentType);
+            _handle->AddSendHeader("Content-Type", m_historyMode.cache.m_contentType);
             _handle->SendResponse(m_historyMode.cache.m_data);
         } else {
             HistoryMode(String(m_historyMode.path));

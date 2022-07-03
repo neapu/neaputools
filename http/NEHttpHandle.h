@@ -4,8 +4,19 @@
 #include "NEHttpPublic.h"
 #include <NEString.h>
 #include <NEByteArray.h>
-
+#include <utility>
+#include <vector>
+#include <set>
 namespace neapu {
+    struct Cookie{
+        String key;
+        String value;
+        int maxAge = -1;
+        String domain;
+        String path;
+        bool secure = false;
+        bool httpOnly = false;
+    };
     class NetChannel;
     class NEAPU_HTTP_EXPORT HttpHandle {
     public:
@@ -37,8 +48,8 @@ namespace neapu {
         int AnalysisResponse(size_t _length);
 
         String GetRecvHeader(String _key);
-        void SetSendHeader(String _key, String _value);
-        void SetSendHeader(String _key, int _value);
+        void AddSendHeader(String _key, String _value);
+        void AddSendHeader(String _key, int _value);
         void SetState(int _code, String _str);
         
         /**********************************
@@ -59,11 +70,14 @@ namespace neapu {
         void CloseConnetion();
 
         String Path() const { return m_path; }
-        void SetPath(String _path) { m_path = _path; }
+        void SetPath(const String& _path) { m_path = _path; }
         HttpMethod Method() const { return m_method; }
         void SetMethod(HttpMethod _method) { m_method = _method; }
 
         ByteArray GetRecvBody() { return m_recvBody; }
+
+        void AddCookie(const Cookie& _cookie);
+        String GetCookie(const String& _key);
     public:
         /**********************************
         * 设定默认Content-Type
@@ -71,14 +85,17 @@ namespace neapu {
         * 这个函数设定的就是这个默认值
         * 如果没有设置则是 text/plain
         **********************************/
-        static void SetDefaultContentType(String _ct);
+        static void SetDefaultContentType(const String& _ct);
     private:
         std::shared_ptr<NetChannel> m_channel;
         HttpMethod m_method = HttpMethod::ALL;
         String m_path;
         std::map<String, String> m_recvHeader;
+        std::map<String, String> m_recvCookies;
         ByteArray m_recvBody;
-        std::map<String, String> m_sendHeader;
+        // std::map<String, String> m_sendHeader;
+        std::vector<std::pair<String, String>> m_sendHeader;
+        std::set<String> m_sendHeaderKeys;
         int m_stateCode = 0;
         String m_stateString;
         static String m_defaultContentType;

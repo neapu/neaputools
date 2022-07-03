@@ -2,13 +2,14 @@
 #include "NEByteStream.h"
 #include "NENetChannel.h"
 #include "NEDateTime.h"
+#include "NEString.h"
 #include "neapu-config.h"
 #include <time.h>
 using namespace neapu;
 
 String HttpHandle::m_defaultContentType = "text/plain";
 
-HttpHandle::HttpHandle(const HttpHandle& _handle)
+HttpHandle::HttpHandle(const HttpHandle &_handle)
 {
     m_channel = _handle.m_channel;
     m_method = _handle.m_method;
@@ -31,18 +32,16 @@ int neapu::HttpHandle::AnalysisRequest(size_t _length)
     String method = stateLineDatas[0];
     if (method == "GET") {
         m_method = HttpMethod::GET;
-    }
-    else if (method == "POST") {
+    } else if (method == "POST") {
         m_method = HttpMethod::POST;
-    }
-    else {
+    } else {
         m_method = HttpMethod::ALL;
     }
     m_path = stateLineDatas[1];
 
     while (true) {
         String headLine = data.ReadLineCRLF();
-        if (headLine.IsEmpty())break;
+        if (headLine.IsEmpty()) break;
         size_t index = headLine.IndexOf(':');
         if (index == String::npos) {
             return -2;
@@ -57,6 +56,22 @@ int neapu::HttpHandle::AnalysisRequest(size_t _length)
     if (m_recvHeader.find("Content-Length") != m_recvHeader.end()) {
         size_t bodyLength = m_recvHeader["Content-Length"].ToUInt();
         m_recvBody = data.Read(bodyLength);
+    }
+
+    //解析cookie
+    auto strCookie = GetRecvHeader("Cookie");
+    if (!strCookie.IsEmpty()) {
+        auto cookies = strCookie.Split(";");
+        for (auto &item : cookies) { // 风险点，std::move之后，list析构时不知道会不会有问题
+            String cookieItem = String::RemoveHeadAndTailSpace(std::move(item));
+            auto index = cookieItem.IndexOf("=");
+            if (index == String::npos) {
+                continue;
+            }
+            m_recvCookies.emplace(
+                cookieItem.Middle(0, index - 1),
+                cookieItem.Middle(index + 1, String::end));
+        }
     }
     return 0;
 }
@@ -75,14 +90,17 @@ String neapu::HttpHandle::GetRecvHeader(String _key)
     return String();
 }
 
-void neapu::HttpHandle::SetSendHeader(String _key, String _value)
+void neapu::HttpHandle::AddSendHeader(String _key, String _value)
 {
-    m_sendHeader[_key] = _value;
+    if (m_sendHeaderKeys.find(_key) == m_sendHeaderKeys.end()) {
+        m_sendHeaderKeys.insert(_key);
+    }
+    m_sendHeader.push_back(std::make_pair(_key, _value));
 }
 
-void neapu::HttpHandle::SetSendHeader(String _key, int _value)
+void neapu::HttpHandle::AddSendHeader(String _key, int _value)
 {
-    SetSendHeader(_key, String::ToString(_value));
+    AddSendHeader(_key, String::ToString(_value));
 }
 
 void neapu::HttpHandle::SetState(int _code, String _str)
@@ -91,7 +109,7 @@ void neapu::HttpHandle::SetState(int _code, String _str)
     m_stateString = _str;
 }
 
-int neapu::HttpHandle::SendResponse(const ByteArray& _body)
+int neapu::HttpHandle::SendResponse(const ByteArray &_body)
 {
     //状态行
     if (m_stateCode == 0) {
@@ -99,21 +117,21 @@ int neapu::HttpHandle::SendResponse(const ByteArray& _body)
         m_stateString = "OK";
     }
     //添加一些基本的响应头
-    if (m_sendHeader.find("Date") == m_sendHeader.end()) {
-        SetSendHeader("Date", DateTime::CurrentDatetime().ToHttpDateTime());
+    if (m_sendHeaderKeys.find("Date") == m_sendHeaderKeys.end()) {
+        AddSendHeader("Date", DateTime::CurrentDatetime().ToHttpDateTime());
     }
-    if (m_sendHeader.find("Content-Length") == m_sendHeader.end() && !_body.IsEmpty()) {
-        SetSendHeader("Content-Length", static_cast<int>(_body.Length()));
+    if (m_sendHeaderKeys.find("Content-Length") == m_sendHeaderKeys.end() && !_body.IsEmpty()) {
+        AddSendHeader("Content-Length", static_cast<int>(_body.Length()));
     }
-    if (m_sendHeader.find("Content-Type") == m_sendHeader.end()) {
-        SetSendHeader("Content-Type", m_defaultContentType);
+    if (m_sendHeaderKeys.find("Content-Type") == m_sendHeaderKeys.end()) {
+        AddSendHeader("Content-Type", m_defaultContentType);
     }
-    if (m_sendHeader.find("Server") == m_sendHeader.end()) {
-        SetSendHeader("Server", String("Neapu Http Server/") + NETOOLS_PROJECT_VERSION);
+    if (m_sendHeaderKeys.find("Server") == m_sendHeaderKeys.end()) {
+        AddSendHeader("Server", String("Neapu Http Server/") + NETOOLS_PROJECT_VERSION);
     }
     String stateLine = String("HTTP/1.1 %1 %2\r\n").Argument(m_stateCode).Argument(m_stateString);
     String headers;
-    for (auto& item : m_sendHeader) {
+    for (auto &item : m_sendHeader) {
         headers.Append(String("%1: %2\r\n").Argument(item.first).Argument(item.second));
     }
     //空行
@@ -121,7 +139,7 @@ int neapu::HttpHandle::SendResponse(const ByteArray& _body)
     return SendRow(ByteArray().Append(ByteArray(stateLine)).Append(ByteArray(headers)).Append(_body));
 }
 
-int neapu::HttpHandle::SendResponse(const char* _str)
+int neapu::HttpHandle::SendResponse(const char *_str)
 {
     if (_str) {
         return SendResponse(ByteArray(_str, strlen(_str)));
@@ -129,7 +147,7 @@ int neapu::HttpHandle::SendResponse(const char* _str)
     return 0;
 }
 
-int neapu::HttpHandle::SendRow(const ByteArray& _content)
+int neapu::HttpHandle::SendRow(const ByteArray &_content)
 {
     return m_channel->Write(_content);
 }
@@ -137,8 +155,7 @@ int neapu::HttpHandle::SendRow(const ByteArray& _content)
 void neapu::HttpHandle::SetContentType(ContentType _contentType)
 {
     String contentType;
-    switch (_contentType)
-    {
+    switch (_contentType) {
     case neapu::HttpHandle::ContentType::Text:
         contentType = "text/plain";
         break;
@@ -164,7 +181,7 @@ void neapu::HttpHandle::SetContentType(ContentType _contentType)
         contentType = "application/octet-stream";
         break;
     }
-    SetSendHeader("Content-Type", contentType);
+    AddSendHeader("Content-Type", contentType);
 }
 
 void neapu::HttpHandle::CloseConnetion()
@@ -172,7 +189,37 @@ void neapu::HttpHandle::CloseConnetion()
     m_channel->Close();
 }
 
-void neapu::HttpHandle::SetDefaultContentType(String _ct)
+void neapu::HttpHandle::SetDefaultContentType(const String& _ct)
 {
     m_defaultContentType = _ct;
+}
+
+void HttpHandle::AddCookie(const Cookie &_cookie)
+{
+    if (_cookie.key.IsEmpty()) return;
+    String cookieLine = String("%1=%2").Argument(_cookie.key).Argument(_cookie.value);
+    if (_cookie.maxAge >= 0) {
+        cookieLine += String("; Max-Age=%1").Argument(_cookie.maxAge);
+    }
+    if (!_cookie.path.IsEmpty()) {
+        cookieLine += String("; Path=%1").Argument(_cookie.path);
+    }
+    if (!_cookie.domain.IsEmpty()) {
+        cookieLine += String("; Domain=%1").Argument(_cookie.domain);
+    }
+    if (_cookie.secure) {
+        cookieLine += "; Secure";
+    }
+    if (_cookie.httpOnly) {
+        cookieLine += "; httpOnly";
+    }
+    AddSendHeader("Set-Cookie", cookieLine);
+}
+
+String HttpHandle::GetCookie(const String& _key)
+{
+    if(m_recvCookies.find(_key)==m_recvCookies.end()){
+        return String();
+    }
+    return m_recvCookies[_key];
 }

@@ -146,7 +146,7 @@ namespace neapu {
         void operator+=(const String& _str);
     public:
         //去除头尾空格
-        static String RemoveHeadAndTailSpace(String str);
+        static String RemoveHeadAndTailSpace(String&& str);
         static String ToString(int number, NumberBase _base = NumberBase::Decimalism);
         static String ToString(long long number, NumberBase _base = NumberBase::Decimalism);
         static String ToString(unsigned int number, NumberBase _base = NumberBase::Decimalism);

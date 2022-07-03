@@ -1,4 +1,5 @@
 #include "NEUtil.h"
+#include <utility>
 using namespace neapu;
 constexpr auto BUFF_SIZE = 8192;
 
@@ -86,10 +87,8 @@ int neapu::Settings::Init(String _filePath)
 				if (index == String::npos) {
 					continue;
 				}
-				String key = str.Middle(0, index - 1);
-				key = String::RemoveHeadAndTailSpace(key);
-				String value = str.Middle(index + 1, String::npos);
-				value = String::RemoveHeadAndTailSpace(value);
+				String key = String::RemoveHeadAndTailSpace(str.Middle(0, index - 1));
+				String value = String::RemoveHeadAndTailSpace(str.Middle(index + 1, String::end));
 				if (value.Front() == '\"' && value.Back() == '\"') {
 					value = value.Middle(1, value.Length() - 2);
 				}
