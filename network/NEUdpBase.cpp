@@ -162,7 +162,7 @@ void neapu::UdpBase::OnReadReady(evutil_socket_t _socket, EventHandle _handle)
     ByteArray data;
     int readSize = 0;
     IPAddress addr;
-    std::unique_ptr<char> buf(new char[BUFFER_SIZE]);
+    std::unique_ptr<unsigned char> buf(new unsigned char[BUFFER_SIZE]);
     if (m_address.IsIPv4()) {
         sockaddr_in sin;
         socklen_t sinLen = sizeof(sin);

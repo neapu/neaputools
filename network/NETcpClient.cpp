@@ -79,7 +79,7 @@ int neapu::TcpClient::Send(const ByteArray& data)
 
 int neapu::TcpClient::Send(const char* _data, size_t _len)
 {
-    return Send(ByteArray(_data, _len));
+    return Send(String(_data, _len));
 }
 
 TcpClient& neapu::TcpClient::OnWrite(std::function<void()> _cb)
@@ -225,7 +225,7 @@ int neapu::TcpClientSync::Send(const ByteArray& _data)
 {
     std::unique_lock<std::mutex> locker(m_writeLock);
     if (!m_fd)return -1;
-    const char* ptr = _data.Data();
+    const unsigned char* ptr = _data.Data();
     size_t writeSize = 0;
     size_t offset = 0;
     int count = 0;
@@ -243,9 +243,9 @@ int neapu::TcpClientSync::Send(const ByteArray& _data)
     return count;
 }
 
-int neapu::TcpClientSync::Send(const char* _data, size_t _len)
+int neapu::TcpClientSync::Send(const void* _data, size_t _len)
 {
-    return Send(ByteArray(_data, _len));
+    return Send(ByteArray(reinterpret_cast<const unsigned char*>(_data), _len));
 }
 
 ByteArray neapu::TcpClientSync::Recv(size_t _len, int _timeout)
@@ -262,7 +262,7 @@ ByteArray neapu::TcpClientSync::Recv(size_t _len, int _timeout)
 #endif
     setsockopt(m_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
 
-    char buf[BUF_SIZE];
+    unsigned char buf[BUF_SIZE];
     int readSize = 0;
     size_t readCount = 0;
     while (readCount < _len) {

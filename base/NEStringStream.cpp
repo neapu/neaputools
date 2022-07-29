@@ -1,22 +1,22 @@
-#include "NEByteStream.h"
+#include "NEStringStream.h"
 
 using namespace neapu;
 
-ByteArray ByteStream::Read(size_t _len)
+String StringStream::Read(size_t _len)
 {
-    if (m_offset >= m_len)return ByteArray();
+    if (m_offset >= m_len)return String();
     size_t count = _len;
     if (m_offset + _len > m_len) {
         count = m_len - m_offset;
     }
-    ByteArray rst(m_data + m_offset, count);
+    String rst(m_data + m_offset, count);
     m_offset += count;
     return rst;
 }
 
-ByteArray ByteStream::ReadTo(const ByteArray& _sub, bool _includeSubstring)
+String StringStream::ReadTo(const String& _sub, bool _includeSubstring)
 {
-    ByteArray rst;
+    String rst;
     if (m_offset >= m_len || _sub.IsEmpty())return rst;
     size_t index = Find(_sub, m_offset);
     if (index == npos) {
@@ -42,26 +42,26 @@ ByteArray ByteStream::ReadTo(const ByteArray& _sub, bool _includeSubstring)
     return rst;
 }
 
-ByteArray neapu::ByteStream::ReadLineCRLF(bool _includeSubstring)
+String neapu::StringStream::ReadLineCRLF(bool _includeSubstring)
 {
-    return ReadTo(ByteArray("\r\n", 2), _includeSubstring);
+    return ReadTo(String("\r\n", 2), _includeSubstring);
 }
 
-ByteArray neapu::ByteStream::ReadLineLF(bool _includeSubstring)
+String neapu::StringStream::ReadLineLF(bool _includeSubstring)
 {
-    return ReadTo(ByteArray("\n", 1), _includeSubstring);
+    return ReadTo(String("\n", 1), _includeSubstring);
 }
 
-ByteArray neapu::ByteStream::ReadToEnd()
+String neapu::StringStream::ReadToEnd()
 {
-    ByteArray rst;
+    String rst;
     if (m_offset >= m_len)return rst;
     rst = Middle(m_offset, m_len);
     m_offset = m_len;
     return rst;
 }
 
-void neapu::ByteStream::MoveTo(size_t _offset)
+void neapu::StringStream::MoveTo(size_t _offset)
 {
     if (_offset > m_len) {
         m_offset = m_len;

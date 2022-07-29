@@ -79,7 +79,7 @@ void neapu::HttpServer::StaticPath(const String &_reqPath,
 int neapu::HttpServer::HistoryMode(const String &_filePath)
 {
     File file(_filePath);
-    if (!file.Open(File::OpenMode::READ)) {
+    if (!file.Open(File::OpenMode::ReadOnly)) {
         return -1;
     }
     m_historyMode.enable = true;
@@ -122,7 +122,7 @@ void neapu::HttpServer::OnRequestStaticFile(
     String strFilePath =
         m_staticPath.m_filePath + _reqPath.Middle(m_staticPath.m_reqPath.Length(), String::end);
     File file(strFilePath);
-    if (file.Open(File::OpenMode::READ)) {
+    if (file.Open(File::OpenMode::ReadOnly)) {
         String extName = file.Extension();
         ByteArray data = file.Read();
         String contentType;

@@ -23,19 +23,19 @@ bool neapu::File::Open(OpenMode _type, bool _binary)
     String mode;
     switch (_type)
     {
-    case neapu::File::OpenMode::READ:
+    case neapu::File::OpenMode::ReadOnly:
         mode = "r";
         break;
-    case neapu::File::OpenMode::WRITE:
+    case neapu::File::OpenMode::WriteOnly:
         mode = "w";
         break;
-    case neapu::File::OpenMode::READWRITE:
+    case neapu::File::OpenMode::ReadWrite:
         mode = "w+";
         break;
-    case neapu::File::OpenMode::APPEND:
+    case neapu::File::OpenMode::Append:
         mode = "a";
         break;
-    case neapu::File::OpenMode::READAPPEND:
+    case neapu::File::OpenMode::ReadAppend:
         mode = "a+";
         break;
     default:
@@ -95,7 +95,7 @@ ByteArray neapu::File::Read(size_t _readCount)
     }
     size_t count = 0;
     size_t readSize = 0;
-    char buf[BUF_SIZE] = { 0 };
+    unsigned char buf[BUF_SIZE] = { 0 };
     while (!feof(m_file) && count < _readCount) {
         readSize = fread(buf, 1, BUF_SIZE, m_file);
         if (readSize > 0) {

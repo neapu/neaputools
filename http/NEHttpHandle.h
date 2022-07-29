@@ -56,7 +56,7 @@ namespace neapu {
         * 向Http客户端发送数据
         * 使用这个方法会带上HTTP头
         **********************************/
-        int SendResponse(const ByteArray& _body);
+        int SendResponse(const String& _body);
         int SendResponse(const char* _str);
 
         /**********************************

@@ -8,11 +8,11 @@ namespace neapu {
     public:
         enum class OpenMode :char
         {
-            READ,
-            WRITE,
-            READWRITE,
-            APPEND,
-            READAPPEND
+            ReadOnly,
+            WriteOnly,
+            ReadWrite,
+            Append,
+            ReadAppend
         };
 
         File() {}

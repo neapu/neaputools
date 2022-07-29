@@ -11,7 +11,7 @@ ByteArray NetChannel::Read(size_t _len)
     std::unique_lock<std::mutex> locker(m_bufferLock);
     ByteArray rst;
     if (!m_fd)return rst;
-    char buf[BUF_SIZE];
+    unsigned char buf[BUF_SIZE];
     int readSize = 0;
     size_t readCount = 0;
     while (readCount<_len) {
@@ -29,7 +29,7 @@ ByteArray NetChannel::ReadAll()
     std::unique_lock<std::mutex> locker(m_bufferLock);
     ByteArray rst;
     if (!m_fd)return rst;
-    char buf[BUF_SIZE];
+    unsigned char buf[BUF_SIZE];
     int readSize = 0;
     while (true) {
         readSize = recv(m_fd, buf, BUF_SIZE, 0);
@@ -43,7 +43,7 @@ int NetChannel::Write(const ByteArray& _data)
 {
     std::unique_lock<std::mutex> locker(m_writeLock);
     if (!m_fd)return -1;
-    const char* ptr = _data.Data();
+    const unsigned char* ptr = _data.Data();
     size_t writeSize = 0;
     size_t offset = 0;
     int count = 0;

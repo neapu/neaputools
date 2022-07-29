@@ -7,7 +7,7 @@ using namespace neapu;
 int main()
 {
     RedisConnector connector;
-    int rc = connector.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "192.168.2.211", 6379));
+    int rc = connector.Connect(IPAddress::MakeAddress(IPAddress::Type::IPv4, "192.168.2.53", 6379));
     if (rc < 0) {
         Logger(LM_ERROR) << "Connect Error:" << rc;
     }
@@ -23,7 +23,7 @@ int main()
         return 0;
     }
 
-    auto rst = connector.SyncGet("test2");
+    auto rst = connector.SyncGet("test3");
     if (rst.IsString()) {
         Logger(LM_INFO) << "Get Data:" << rst._string;
     }

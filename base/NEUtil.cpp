@@ -1,5 +1,7 @@
 #include "NEUtil.h"
 #include <utility>
+#include "NEByteArray.h"
+#include "sha/sha256.h"
 using namespace neapu;
 constexpr auto BUFF_SIZE = 8192;
 
@@ -201,4 +203,11 @@ int neapu::Settings::SetValue(String _title, String _key, String _value)
 	}
 	fclose(f);
 	return 0;
+}
+
+ByteArray Encryption::sha256(const ByteArray &data)
+{
+	unsigned char rst[32] = {0};
+	::sha256(data.Data(), data.Length(), rst);
+	return ByteArray(rst, 32);
 }

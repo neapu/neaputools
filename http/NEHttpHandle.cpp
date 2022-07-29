@@ -1,5 +1,5 @@
 #include "NEHttpHandle.h"
-#include "NEByteStream.h"
+#include "NEStringStream.h"
 #include "NENetChannel.h"
 #include "NEDateTime.h"
 #include "NEString.h"
@@ -23,7 +23,7 @@ HttpHandle::HttpHandle(const HttpHandle &_handle)
 
 int neapu::HttpHandle::AnalysisRequest(size_t _length)
 {
-    ByteStream data = (ByteStream)m_channel->Read(_length);
+    StringStream data = (StringStream)m_channel->Read(_length);
     String stateLine = data.ReadLineCRLF();
     auto stateLineDatas = stateLine.Split(' ');
     if (stateLineDatas.size() != 3) {
@@ -109,7 +109,7 @@ void neapu::HttpHandle::SetState(int _code, String _str)
     m_stateString = _str;
 }
 
-int neapu::HttpHandle::SendResponse(const ByteArray &_body)
+int neapu::HttpHandle::SendResponse(const String &_body)
 {
     //状态行
     if (m_stateCode == 0) {
@@ -136,13 +136,13 @@ int neapu::HttpHandle::SendResponse(const ByteArray &_body)
     }
     //空行
     headers.Append("\r\n");
-    return SendRow(ByteArray().Append(ByteArray(stateLine)).Append(ByteArray(headers)).Append(_body));
+    return SendRow(ByteArray().Append(stateLine).Append(headers).Append(_body));
 }
 
 int neapu::HttpHandle::SendResponse(const char *_str)
 {
     if (_str) {
-        return SendResponse(ByteArray(_str, strlen(_str)));
+        return SendResponse(String(_str, strlen(_str)));
     }
     return 0;
 }

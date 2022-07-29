@@ -101,9 +101,9 @@ BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
 
 # 在构造函数的初始化列表的冒号后换行
-BreakConstructorInitializers: AfterColon
+BreakConstructorInitializers: BeforeComma
 
-#BreakInheritanceList: AfterColon
+BreakInheritanceList: BeforeComma
 
 BreakStringLiterals: false
 
@@ -113,7 +113,7 @@ ColumnLimit: 0
 CompactNamespaces: true
 
 # 构造函数的初始化列表要么都在同一行，要么都各自一行
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 
 # 构造函数的初始化列表的缩进宽度
 ConstructorInitializerIndentWidth: 4

@@ -50,7 +50,7 @@ namespace neapu {
 		int Connect(const IPAddress& _addr);
 		NetworkError GetError() { return m_err; }
 		int Send(const ByteArray& _data);
-		int Send(const char* _data, size_t _len);
+		int Send(const void* _data, size_t _len);
 		ByteArray Recv(size_t _len = (size_t)(-1), int _timeout = 3000);
 		void Close();
 		bool IsConnected() { return m_fd != 0; }
