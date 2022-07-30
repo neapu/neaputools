@@ -6,6 +6,7 @@
  * ************************************************************************************ */
 #pragma once
 #include "base_pub.h"
+#include <cstddef>
 #include <string.h>
 #include <string>
 #include <stdint.h>
@@ -165,8 +166,15 @@ public:
     {
         return m_data[pos];
     }
+    const char &operator[](size_t pos) const
+    {
+        return m_data[pos];
+    }
     String operator+(const String &_str);
     void operator+=(const String &_str);
+
+    String ToHex(bool _upper) const;
+    String ToBase64() const;
 
 public:
     //去除头尾空格
@@ -176,6 +184,8 @@ public:
     static String ToString(unsigned int number, NumberBase _base = NumberBase::Decimalism);
     static String ToString(unsigned long long number, NumberBase _base = NumberBase::Decimalism);
     static String ToString(double number);
+    static String FromHex(const String &_hex);
+    static String FromBase64(const String &_base64);
 
 protected:
     void extend(size_t len);

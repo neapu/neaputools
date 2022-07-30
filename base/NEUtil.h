@@ -29,5 +29,7 @@ private:
 class NEAPU_BASE_EXPORT Encryption {
 public:
     static ByteArray sha256(const ByteArray &data);
+    static String Base64Encode(const ByteArray &data);
+    static ByteArray Base64Decode(const String &data);
 };
 } // namespace neapu

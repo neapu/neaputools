@@ -4,25 +4,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_definitions(NEAPU_BASE_EXPORTS)
 endif()
 file(GLOB HEAD_FILES "./*.h")
-add_library(${EXE_NAME} SHARED 
-	"base_pub.h"
-	"NEByteArray.h"
-	"NEByteArray.cpp"
-	"NELogger.h"
-	"NELogger.cpp"
-	"NESafeQueue.h"
-	"NEString.h"
-	"NEThreadPoll.h"
- 	"NEUtil.h" 
-	"NEUtil.cpp" 
-	"NEString.cpp" 
-	"NEFile.h" 
-	"NEFile.cpp" 
-	"NEStringStream.h" 
-	"NEStringStream.cpp" 
-	"NEDateTime.h" 
-	"NEDateTime.cpp"
-	"sha/sha256.h"
-	"sha/sha256.c")
+aux_source_directory(. SRC_FILES)
+aux_source_directory(sha SHA_SRC_FILES)
+aux_source_directory(base64 BASE64_SEC_FILES)
+add_library(${EXE_NAME} SHARED ${SRC_FILES} ${SHA_SRC_FILES} ${BASE64_SEC_FILES})
 install(TARGETS ${EXE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${HEAD_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

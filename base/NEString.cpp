@@ -1,11 +1,14 @@
 #include "NEString.h"
 #include <clocale>
+#include <cstddef>
+#include <map>
 #ifdef WIN32
 #include <Windows.h>
 #endif // WIN32
 #include "NEByteArray.h"
 #include <memory>
 #include <string.h>
+#include "NEUtil.h"
 
 #ifdef WIN32
 static void *memmem(const void *l, size_t l_len, const void *s, size_t s_len)
@@ -84,11 +87,10 @@ neapu::String::String(const char *str)
     if (str) {
         Append(str, strlen(str));
     }
-    
 }
 
 neapu::String::String(const ByteArray &_ba)
-    : String(reinterpret_cast<const char*>(_ba.Data()), _ba.Length())
+    : String(reinterpret_cast<const char *>(_ba.Data()), _ba.Length())
 {}
 
 neapu::String::String(const std::string &_str)
@@ -570,6 +572,54 @@ String String::operator+(const String &_str)
 void String::operator+=(const String &_str)
 {
     this->Append(_str);
+}
+
+String String::ToHex(bool _upper) const
+{
+    auto buf = std::unique_ptr<char>(new char[m_len * 2]);
+    static char hexu[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    static char hexd[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    auto GetChar = [&](char c) -> char {
+        return _upper ? hexu[c] : hexd[c];
+    };
+
+    for (size_t i = 0; i < m_len; i++) {
+        buf.get()[i * 2] = GetChar((m_data[i] >> 4) & 0x0f);
+        buf.get()[i * 2 + 1] = GetChar((m_data[i]) & 0x0f);
+    }
+    return String(buf.get(), m_len * 2);
+}
+
+String String::FromHex(const String &_hex)
+{
+    size_t len = _hex.Length() / 2 + 1;
+    auto buf = std::unique_ptr<char>(new char[len]);
+    static std::map<char, char> hexu = {
+        {'1', 1}, {'2', 2}, {'3', 3}, {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7}, {'8', 8}, {'9', 9}, {'A', 10}, {'B', 11}, {'C', 12}, {'D', 13}, {'E', 14}, {'F', 15}, {'0', 0}};
+    static std::map<char, char> hexd = {
+        {'1', 1}, {'2', 2}, {'3', 3}, {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7}, {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11}, {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}, {'0', 0}};
+    auto GetChar = [&](const char c) -> char {
+        if (hexu.find(c) != hexu.end()) return hexu[c];
+        if (hexd.find(c) != hexd.end()) return hexd[c];
+        return 0;
+    };
+    for (size_t i = 0; i < len - 1; i++) {
+        buf.get()[i] = (GetChar(_hex[i * 2]) << 8) & 0xf0;
+        buf.get()[i] += GetChar(_hex[i * 2 + 1]) & 0x0f;
+    }
+    buf.get()[len - 1] = 0;
+    return String(buf.get(), len);
+}
+
+String String::ToBase64() const
+{
+    return Encryption::Base64Encode(*this);
+}
+
+String String::FromBase64(const String &_base64)
+{
+    return String(Encryption::Base64Decode(_base64));
 }
 
 String neapu::operator+(const char *_cstr, const String &_str)

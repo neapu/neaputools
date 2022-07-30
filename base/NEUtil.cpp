@@ -1,7 +1,11 @@
 #include "NEUtil.h"
+#include <cstddef>
+#include <memory>
 #include <utility>
 #include "NEByteArray.h"
+#include "NEString.h"
 #include "sha/sha256.h"
+#include "base64/base64.h"
 using namespace neapu;
 constexpr auto BUFF_SIZE = 8192;
 
@@ -210,4 +214,18 @@ ByteArray Encryption::sha256(const ByteArray &data)
 	unsigned char rst[32] = {0};
 	::sha256(data.Data(), data.Length(), rst);
 	return ByteArray(rst, 32);
+}
+
+String Encryption::Base64Encode(const ByteArray &data)
+{
+	auto buf = std::unique_ptr<char>(new char[data.Length()*2]);
+	base64_encode(data.Data(), buf.get(), (int)data.Length());
+	return String(buf.get());
+}
+
+ByteArray Encryption::Base64Decode(const String &data)
+{
+	auto buf = std::unique_ptr<unsigned char>(new unsigned char[data.Length()]);
+	int len = base64_decode(data.ToCString(), buf.get());
+	return ByteArray(buf.get(), size_t(len));
 }
