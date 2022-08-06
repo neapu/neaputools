@@ -56,6 +56,9 @@ int neapu::HttpHandle::AnalysisRequest(size_t _length)
     if (m_recvHeader.find("Content-Length") != m_recvHeader.end()) {
         size_t bodyLength = m_recvHeader["Content-Length"].ToUInt();
         m_recvBody = data.Read(bodyLength);
+    } else if (m_recvHeader.find("content-length") != m_recvHeader.end()) {
+        size_t bodyLength = m_recvHeader["content-length"].ToUInt();
+        m_recvBody = data.Read(bodyLength);
     }
 
     //解析cookie
@@ -189,7 +192,7 @@ void neapu::HttpHandle::CloseConnetion()
     m_channel->Close();
 }
 
-void neapu::HttpHandle::SetDefaultContentType(const String& _ct)
+void neapu::HttpHandle::SetDefaultContentType(const String &_ct)
 {
     m_defaultContentType = _ct;
 }
@@ -216,9 +219,9 @@ void HttpHandle::AddCookie(const Cookie &_cookie)
     AddSendHeader("Set-Cookie", cookieLine);
 }
 
-String HttpHandle::GetCookie(const String& _key)
+String HttpHandle::GetCookie(const String &_key)
 {
-    if(m_recvCookies.find(_key)==m_recvCookies.end()){
+    if (m_recvCookies.find(_key) == m_recvCookies.end()) {
         return String();
     }
     return m_recvCookies[_key];
