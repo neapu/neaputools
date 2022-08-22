@@ -1,10 +1,18 @@
 // sha256.c
  
 #include "sha256.h"
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+#ifdef WIN32
+#define bzero(buf, len) memset(buf, 0, len)
+#define __builtin_bswap32 _byteswap_ulong
+#endif // WIN32
+
  
 #define rightrotate(w, n) ((w >> n) | (w) << (32-(n)))
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -38,7 +46,10 @@ void sha256(const unsigned char *data, size_t len, unsigned char *out) {
     int r = (int)(len * 8 % 512);
     int append = ((r < 448) ? (448 - r) : (448 + 512 - r)) / 8;
     size_t new_len = len + append + 8;// 原始数据+填充+64bit位数
-    unsigned char buf[new_len];
+    unsigned char *buf = (unsigned char *)malloc(new_len);
+    if (!buf) {
+        return;
+    }
     bzero(buf + len, append); //将内存（字符串）前n个字节清零<string.h>
     if (len > 0) {
         memcpy(buf, data, len);
@@ -108,6 +119,7 @@ void sha256(const unsigned char *data, size_t len, unsigned char *out) {
     copy_uint32(out + 5, h5);
     copy_uint32(out + 6, h6);
     copy_uint32(out + 7, h7);
+    free(buf);
 	
     /*for(int i=0;i<32;i++)
 	{

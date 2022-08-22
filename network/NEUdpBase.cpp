@@ -110,12 +110,20 @@ int neapu::UdpBase::Send(const ByteArray& _data, const IPAddress& _addr)
     if (_addr.IsIPv4()) {
         sockaddr_in sin = {0};
         _addr.ToSockaddr(&sin);
-        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr*)&sin, sizeof(sin));
+#ifdef WIN32
+        rc = ::sendto(m_udpFd, reinterpret_cast<const char*>(_data.Data()), _data.Length(), 0, (sockaddr *)&sin, sizeof(sin));
+#else
+        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr *)&sin, sizeof(sin));
+#endif // WIN32
     }
     else if (_addr.IsIPv6()) {
         sockaddr_in6 sin = {0};
         _addr.ToSockaddr(&sin);
-        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr*)&sin, sizeof(sin));
+#ifdef WIN32
+        rc = ::sendto(m_udpFd, reinterpret_cast<const char *>(_data.Data()), _data.Length(), 0, (sockaddr *)&sin, sizeof(sin));
+#else
+        rc = ::sendto(m_udpFd, _data.Data(), _data.Length(), 0, (sockaddr *)&sin, sizeof(sin));
+#endif // WIN32
     }
     if (rc<0) {
         int err = evutil_socket_geterror(m_udpFd);
@@ -166,13 +174,21 @@ void neapu::UdpBase::OnReadReady(evutil_socket_t _socket, EventHandle _handle)
     if (m_address.IsIPv4()) {
         sockaddr_in sin;
         socklen_t sinLen = sizeof(sin);
-        readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr*)&sin, &sinLen);
+#ifdef WIN32
+        readSize = ::recvfrom(_fd, reinterpret_cast<char*>(buf.get()), BUFFER_SIZE, 0, (sockaddr *)&sin, &sinLen);
+#else
+        readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr *)&sin, &sinLen);
+#endif // WIN32
         addr = IPAddress::MakeAddress(sin);
     }
     else if (m_address.IsIPv6()) {
         sockaddr_in6 sin;
         socklen_t sinLen = sizeof(sin);
-        readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr*)&sin, &sinLen);
+#ifdef WIN32
+        readSize = ::recvfrom(_fd, reinterpret_cast<char *>(buf.get()), BUFFER_SIZE, 0, (sockaddr *)&sin, &sinLen);
+#else
+        readSize = ::recvfrom(_fd, buf.get(), BUFFER_SIZE, 0, (sockaddr *)&sin, &sinLen);
+#endif // WIN32
         addr = IPAddress::MakeAddress(sin);
     }
     data.Append(buf.get(), static_cast<size_t>(readSize));

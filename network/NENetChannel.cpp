@@ -16,7 +16,11 @@ ByteArray NetChannel::Read(size_t _len)
     size_t readCount = 0;
     while (readCount<_len) {
         readSize = BUF_SIZE < _len - readCount ? BUF_SIZE : _len - readCount;
+#ifdef WIN32
+        readSize = recv(m_fd, reinterpret_cast<char *>(buf), readSize, 0);
+#else
         readSize = recv(m_fd, buf, readSize, 0);
+#endif // WIN32
         if (readSize <= 0)break;
         rst.Append(buf, readSize);
         readCount += readSize;
@@ -32,7 +36,11 @@ ByteArray NetChannel::ReadAll()
     unsigned char buf[BUF_SIZE];
     int readSize = 0;
     while (true) {
+#ifdef WIN32
+        readSize = recv(m_fd, reinterpret_cast<char*>(buf), BUF_SIZE, 0);
+#else
         readSize = recv(m_fd, buf, BUF_SIZE, 0);
+#endif // WIN32
         if (readSize <= 0)break;
         rst.Append(buf, readSize);
     }
@@ -49,7 +57,11 @@ int NetChannel::Write(const ByteArray& _data)
     int count = 0;
     while(offset<_data.Length()) {
         writeSize = _data.Length()-offset>WRITE_SIZE?WRITE_SIZE:_data.Length()-offset;
-        count = ::send(m_fd, ptr+offset, writeSize, 0);
+#ifdef WIN32
+        count = ::send(m_fd, reinterpret_cast<const char*>(ptr + offset), writeSize, 0);
+#else
+        count = ::send(m_fd, ptr + offset, writeSize, 0);
+#endif // WIN32
         if (count <= 0) {
             int err = evutil_socket_geterror(m_fd);
             m_err.code = err;

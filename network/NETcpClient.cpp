@@ -231,7 +231,11 @@ int neapu::TcpClientSync::Send(const ByteArray& _data)
     int count = 0;
     while (offset < _data.Length()) {
         writeSize = _data.Length() - offset > WRITE_SIZE ? WRITE_SIZE : _data.Length() - offset;
+#ifdef WIN32
+        count = ::send(m_fd, reinterpret_cast<const char*>(ptr + offset), writeSize, 0);
+#else
         count = ::send(m_fd, ptr + offset, writeSize, 0);
+#endif // WIN32
         if (count <= 0) {
             int err = evutil_socket_geterror(m_fd);
             m_err.code = err;
@@ -266,7 +270,11 @@ ByteArray neapu::TcpClientSync::Recv(size_t _len, int _timeout)
     int readSize = 0;
     size_t readCount = 0;
     while (readCount < _len) {
+#ifdef WIN32
+        readSize = ::recv(m_fd, reinterpret_cast<char*>(buf), BUF_SIZE, 0);
+#else
         readSize = ::recv(m_fd, buf, BUF_SIZE, 0);
+#endif // WIN32
         if (readSize <= 0) {
             break;
         }

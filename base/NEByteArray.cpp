@@ -104,7 +104,7 @@ bool ByteArray::operator<(const ByteArray &ba) const
     } else if (m_len > 0 && ba.m_len == 0) {
         return false;
     } else {
-        size_t len = std::min(m_len, ba.m_len);
+        size_t len = (std::min)(m_len, ba.m_len);
         int rc = memcmp(m_data, ba.m_data, len);
         if (rc == 0) {
             return m_len < ba.m_len;
