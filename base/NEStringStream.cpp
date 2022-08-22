@@ -9,7 +9,7 @@ String StringStream::Read(size_t _len)
     if (m_offset + _len > m_len) {
         count = m_len - m_offset;
     }
-    String rst(m_data + m_offset, count);
+    String rst(m_data.get() + m_offset, count);
     m_offset += count;
     return rst;
 }

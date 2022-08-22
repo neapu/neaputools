@@ -45,18 +45,13 @@ using namespace neapu;
 size_t String::npos = (size_t)(-1);
 size_t String::end = (size_t)(-1);
 
-#define BASE_LEN 1024
-String::String()
+static constexpr size_t BASE_LEN = 4096;
+String::String(size_t len)
     : m_max(BASE_LEN)
     , m_data(nullptr)
     , m_len(0)
 {
-    m_data = static_cast<char *>(malloc(BASE_LEN));
-    if (m_data) {
-        memset(m_data, 0, BASE_LEN);
-    } else {
-        m_max = 0;
-    }
+    extend(len);
 }
 
 String::String(const String &data)
@@ -67,7 +62,7 @@ String::String(const String &data)
 
 String::String(String &&data) noexcept
 {
-    m_data = data.m_data;
+    m_data = std::move(data.m_data);
     data.m_data = nullptr;
     m_len = data.m_len;
     data.m_len = 0;
@@ -90,8 +85,12 @@ neapu::String::String(const char *str)
 }
 
 neapu::String::String(const ByteArray &_ba)
-    : String(reinterpret_cast<const char *>(_ba.Data()), _ba.Length())
-{}
+    : String(_ba.Length())
+{
+    memcpy(m_data.get(), _ba.Data(), _ba.Length());
+    m_len = _ba.Length();
+    m_data.get()[m_len]=0;
+}
 
 neapu::String::String(const std::string &_str)
     : String(_str.c_str(), _str.length())
@@ -99,13 +98,11 @@ neapu::String::String(const std::string &_str)
 
 String::~String() noexcept
 {
-    if (m_data)
-        free(m_data);
 }
 
 String &String::Append(const String &data)
 {
-    this->Append(data.m_data, data.m_len);
+    this->Append(data.ToCString(), data.Length());
     return *this;
 }
 
@@ -116,9 +113,9 @@ String &String::Append(const char *data, size_t len)
     if (len + m_len >= m_max) {
         extend(len + m_len);
     }
-    memcpy(m_data + m_len, data, len);
+    memcpy(m_data.get() + m_len, data, len);
     m_len += len;
-    m_data[m_len] = 0; //保证0结尾
+    m_data.get()[m_len] = 0; //保证0结尾
     return (*this);
 }
 
@@ -127,9 +124,9 @@ String &String::Append(const char c)
     if (1 + m_len >= m_max) {
         extend(1 + m_len);
     }
-    m_data[m_len] = c;
+    m_data.get()[m_len] = c;
     m_len += 1;
-    m_data[m_len] = 0; //保证0结尾
+    m_data.get()[m_len] = 0; //保证0结尾
     return (*this);
 }
 
@@ -290,15 +287,15 @@ int64_t String::ToInt() const
     int64_t rst = 0;
     bool neg = false;
     size_t i = 0;
-    if (m_len > 0 && m_data[0] == '-') {
+    if (m_len > 0 && m_data.get()[0] == '-') {
         neg = true;
         i = 1;
     }
     for (; i < m_len; i++) {
-        if (m_data[i] < '0' || m_data[i] > '9')
+        if (m_data.get()[i] < '0' || m_data.get()[i] > '9')
             break;
         rst *= 10;
-        rst += m_data[i] - '0';
+        rst += m_data.get()[i] - '0';
     }
     if (neg) {
         rst = -rst;
@@ -310,10 +307,10 @@ uint64_t String::ToUInt() const
 {
     uint64_t rst = 0;
     for (size_t i = 0; i < m_len; i++) {
-        if (m_data[i] < '0' || m_data[i] > '9')
+        if (m_data.get()[i] < '0' || m_data.get()[i] > '9')
             break;
         rst *= 10;
-        rst += m_data[i] - '0';
+        rst += m_data.get()[i] - '0';
     }
 
     return rst;
@@ -324,21 +321,21 @@ double String::ToFloat() const
     double rst = 0.0;
     bool neg = false;
     size_t i = 0;
-    if (m_len > 0 && m_data[0] == '-') {
+    if (m_len > 0 && m_data.get()[0] == '-') {
         neg = true;
         i = 1;
     }
     for (; i < m_len; i++) { //整数部分
-        if (m_data[i] < '0' || m_data[i] > '9' || m_data[i] == '.')
+        if (m_data.get()[i] < '0' || m_data.get()[i] > '9' || m_data.get()[i] == '.')
             break;
         rst *= 10;
-        rst += m_data[i];
+        rst += m_data.get()[i];
     }
-    if (i < m_len && m_data[i] == '.') { //小数部分
+    if (i < m_len && m_data.get()[i] == '.') { //小数部分
         i++;
         double coef = 0.1;
         for (; i < m_len; i++) {
-            rst += m_data[i] * coef;
+            rst += m_data.get()[i] * coef;
             coef /= 10;
         }
     }
@@ -352,9 +349,10 @@ size_t String::IndexOf(char _c, size_t _begin) const
 {
     if (_begin >= m_len)
         return -1;
-    char *p = (char *)memchr(m_data + _begin, _c, m_len - _begin);
+    char* datePtr = m_data.get();
+    char *p = (char *)memchr(datePtr + _begin, _c, m_len - _begin);
     if (p) {
-        return p - m_data;
+        return p - datePtr;
     }
     return -1;
 }
@@ -365,9 +363,9 @@ size_t String::IndexOf(const String &_ba, size_t _begin) const
         return -1;
     if (_ba.Length() == 0 || _ba.Length() == -1)
         return -1;
-    auto p = (char *)memmem(m_data + _begin, m_len, _ba.m_data, _ba.Length());
+    auto p = (char *)memmem(Ptr() + _begin, m_len, _ba.Ptr(), _ba.Length());
     if (p) {
-        return p - m_data;
+        return p - Ptr();
     }
     return -1;
 }
@@ -381,7 +379,7 @@ size_t neapu::String::LastIndexOf(char _c, size_t _begin) const
         pos = m_len;
     do {
         pos--;
-        if (m_data[pos] == _c) {
+        if (m_data.get()[pos] == _c) {
             return pos;
         }
     } while (pos > 0);
@@ -398,7 +396,7 @@ String String::Middle(size_t _begin, size_t _end) const
     size_t len = _end - _begin + 1;
     if (len <= 0)
         return res;
-    res.Append(m_data + _begin, len);
+    res.Append(m_data.get() + _begin, len);
     return res;
 }
 
@@ -419,9 +417,10 @@ String String::Right(size_t _len) const
 
 void String::Clear()
 {
-    if (m_data && m_len != 0)
-        memset(m_data, 0, m_len);
+    m_data.reset();
     m_len = 0;
+    m_max = 0;
+    extend(0);
 }
 
 std::vector<String> String::Split(const String &_separator, bool _skepEmpty)
@@ -489,14 +488,14 @@ bool neapu::String::Replace(const String &_before, const String &_after)
     }
     std::shared_ptr<char> temp(new char[newLen]);
     size_t offset = 0;
-    memcpy(temp.get() + offset, m_data, index);
+    memcpy(temp.get() + offset, m_data.get(), index);
     offset += index;
-    memcpy(temp.get() + offset, _after.m_data, _after.Length());
+    memcpy(temp.get() + offset, _after.m_data.get(), _after.Length());
     offset += _after.Length();
     size_t remSize = m_len - (index + _before.Length());
-    memcpy(temp.get() + offset, m_data + (index + _before.Length()), remSize);
-    memset(m_data, 0, m_len);
-    memcpy(m_data, temp.get(), newLen);
+    memcpy(temp.get() + offset, m_data.get() + (index + _before.Length()), remSize);
+    memset(m_data.get(), 0, m_len);
+    memcpy(m_data.get(), temp.get(), newLen);
     m_len = newLen;
     return true;
 }
@@ -552,13 +551,11 @@ String neapu::String::ToString(double number)
 void String::extend(size_t len)
 {
     size_t newlen = len + BASE_LEN - (len % BASE_LEN);
-    m_data = static_cast<char *>(realloc(m_data, newlen));
-    if (!m_data) {
-        perror("realloc error");
-        exit(-1);
-    }
-    memset(m_data + m_max, 0, newlen - m_max);
+    char* newData = new char[newlen];
+    memset(newData, 0, newlen);
     m_max = newlen;
+    memcpy(newData, m_data.get(), m_len);
+    m_data.reset(newData);
 }
 
 String String::operator+(const String &_str)
@@ -585,8 +582,8 @@ String String::ToHex(bool _upper) const
     };
 
     for (size_t i = 0; i < m_len; i++) {
-        buf.get()[i * 2] = GetChar((m_data[i] >> 4) & 0x0f);
-        buf.get()[i * 2 + 1] = GetChar((m_data[i]) & 0x0f);
+        buf.get()[i * 2] = GetChar((m_data.get()[i] >> 4) & 0x0f);
+        buf.get()[i * 2 + 1] = GetChar((m_data.get()[i]) & 0x0f);
     }
     return String(buf.get(), m_len * 2);
 }

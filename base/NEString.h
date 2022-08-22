@@ -7,6 +7,7 @@
 #pragma once
 #include "base_pub.h"
 #include <cstddef>
+#include <memory>
 #include <string.h>
 #include <string>
 #include <stdint.h>
@@ -25,7 +26,7 @@ public:
 public:
     static size_t npos;
     static size_t end;
-    String();
+    String(size_t len = 0);
     String(const String &data);
     String(String &&data) noexcept;
     String(const char *data, size_t len);
@@ -61,13 +62,13 @@ public:
     }
     char Front() const
     {
-        if (m_len > 0) return m_data[0];
+        if (m_len > 0) return m_data.get()[0];
         return 0;
     }
     char Back() const
     {
         if (m_len > 0) {
-            return m_data[m_len - 1];
+            return m_data.get()[m_len - 1];
         }
         return 0;
     }
@@ -79,11 +80,11 @@ public:
     double ToFloat() const;
     const char *ToCString() const
     {
-        return m_data;
+        return m_data.get();
     }
     char *ToCString()
     {
-        return m_data;
+        return m_data.get();
     }
     std::string ToStdString() const
     {
@@ -92,11 +93,11 @@ public:
 
     const char *Ptr() const
     {
-        return m_data;
+        return m_data.get();
     }
     char *Ptr()
     {
-        return m_data;
+        return m_data.get();
     }
 
     size_t IndexOf(char _c, size_t _begin = 0) const;
@@ -127,9 +128,9 @@ public:
     }
     inline bool operator<(const String &str) const
     {
-        if (this->m_data && str.m_data) {
-            return strcmp(this->m_data, str.m_data) < 0;
-        } else if (this->m_data) {
+        if (!this->IsEmpty() && !str.IsEmpty()) {
+            return strcmp(this->ToCString(), str.ToCString()) < 0;
+        } else if (!this->IsEmpty()) {
             return false;
         } else {
             return true;
@@ -137,22 +138,27 @@ public:
     }
     inline bool operator>(const String &str) const
     {
-        if (this->m_len && str.m_len) {
-            return strcmp(this->m_data, str.m_data) > 0;
-        } else if (this->m_len) {
+        if (!this->IsEmpty() && !str.IsEmpty()) {
+            return strcmp(this->ToCString(), str.ToCString()) > 0;
+        } else if (!this->IsEmpty()) {
             return true;
         } else {
             return false;
         }
     }
-    inline bool operator==(const String &ba) const
+    inline bool operator==(const String &str) const
     {
-        return (m_len == ba.m_len ? (memcmp(m_data, ba.m_data, m_len) == 0) : false);
+        if (this->IsEmpty() && str.IsEmpty()) {
+            return true;
+        } else if (this->Length() == str.Length()) {
+            return strcmp(this->ToCString(), str.ToCString()) == 0;
+        }
+        return false;
     }
     inline bool operator==(const char *str) const
     {
         if (!str) return m_len == 0 ? true : false;
-        return (m_len == strlen(str) ? (memcmp(m_data, str, m_len) == 0) : false);
+        return (m_len == strlen(str) ? (strcmp(ToCString(), str) == 0) : false);
     }
     inline bool operator!=(const String &ba) const
     {
@@ -164,11 +170,11 @@ public:
     }
     inline char &operator[](size_t pos)
     {
-        return m_data[pos];
+        return m_data.get()[pos];
     }
     const char &operator[](size_t pos) const
     {
-        return m_data[pos];
+        return m_data.get()[pos];
     }
     String operator+(const String &_str);
     void operator+=(const String &_str);
@@ -191,7 +197,7 @@ protected:
     void extend(size_t len);
 
 protected:
-    char *m_data;
+    std::unique_ptr<char> m_data;
     size_t m_len;
     size_t m_max;
 };
