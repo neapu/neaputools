@@ -35,13 +35,21 @@ namespace neapu{
         //    m_data.Append(std::forward<Args>(args)...);
         //    return *this;
         //}
+        Logger& operator<<(const char str[]);
         Logger& operator<<(const String& str);
-        // Logger& operator<<(const ByteArray& data);
+        Logger& operator<<(const ByteArray& data);
         Logger& operator<<(const double n);
         Logger& operator<<(const int n);
         Logger& operator<<(const long long int n);
         Logger& operator<<(const unsigned int n);
         Logger& operator<<(const unsigned long long int n);
+
+        template<typename T>
+        Logger& operator<<(const T& data)
+        {
+            m_data.Append(data.ToString());
+            return (*this);
+        }
 
     private:
         static bool openFile();

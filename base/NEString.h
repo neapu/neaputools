@@ -182,6 +182,8 @@ public:
     String ToHex(bool _upper) const;
     String ToBase64() const;
 
+    void RemoveBack(size_t _count);
+
 public:
     //去除头尾空格
     static String RemoveHeadAndTailSpace(String &&str);

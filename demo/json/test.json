@@ -1,0 +1,17 @@
+{
+    "class": {
+        "item": 1,
+        "item2": 2.0,
+        "item3": 3.2,
+        "item4": "string"
+    },
+    "array": [
+        "123",
+        4,
+        5.5,
+        {
+            "bool": true,
+            "bool2": false
+        }
+    ]
+}

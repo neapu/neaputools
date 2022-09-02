@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+project(json_demo CXX)
+include_directories("../../base")
+add_executable(${PROJECT_NAME} "main.cpp"  )
+target_link_libraries(${PROJECT_NAME} PUBLIC NeapuBase)
