@@ -272,10 +272,10 @@ String &neapu::String::Argument(double number)
 std::wstring String::ToWString() const
 {
     setlocale(LC_ALL, "chs");
-    int len = MultiByteToWideChar(CP_ACP, 0, m_data, m_len, nullptr, 0);
+    int len = MultiByteToWideChar(CP_ACP, 0, m_data.get(), m_len, nullptr, 0);
     int mallocLen = sizeof(wchar_t *) * (len + 1);
     wchar_t *temp = (wchar_t *)malloc(mallocLen);
-    len = MultiByteToWideChar(CP_ACP, 0, m_data, m_len, temp, len);
+    len = MultiByteToWideChar(CP_ACP, 0, m_data.get(), m_len, temp, len);
     std::wstring strRst(temp, len);
     free(temp);
     return strRst;
