@@ -1,4 +1,5 @@
 #include "NELogger.h"
+#include "NEByteArray.h"
 #include <cstdio>
 #include <ctime>
 #include <chrono>
@@ -76,9 +77,21 @@ void Logger::setPrintLevel(int nPrintLevel)
     m_nPrintLevel = nPrintLevel;
 }
 
+Logger& Logger::operator<<(const char str[])
+{
+    m_data.Append(str);
+    return (*this);
+}
+
 Logger& Logger::operator<<(const String& str)
 {
     m_data.Append(str);
+    return (*this);
+}
+
+Logger& Logger::operator<<(const ByteArray& data)
+{
+    m_data.Append(data);
     return (*this);
 }
 

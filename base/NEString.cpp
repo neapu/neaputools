@@ -89,7 +89,7 @@ neapu::String::String(const ByteArray &_ba)
 {
     memcpy(m_data.get(), _ba.Data(), _ba.Length());
     m_len = _ba.Length();
-    m_data.get()[m_len]=0;
+    m_data.get()[m_len] = 0;
 }
 
 neapu::String::String(const std::string &_str)
@@ -349,7 +349,7 @@ size_t String::IndexOf(char _c, size_t _begin) const
 {
     if (_begin >= m_len)
         return -1;
-    char* datePtr = m_data.get();
+    char *datePtr = m_data.get();
     char *p = (char *)memchr(datePtr + _begin, _c, m_len - _begin);
     if (p) {
         return p - datePtr;
@@ -551,7 +551,7 @@ String neapu::String::ToString(double number)
 void String::extend(size_t len)
 {
     size_t newlen = len + BASE_LEN - (len % BASE_LEN);
-    char* newData = new char[newlen];
+    char *newData = new char[newlen];
     memset(newData, 0, newlen);
     m_max = newlen;
     memcpy(newData, m_data.get(), m_len);
@@ -624,4 +624,11 @@ String neapu::operator+(const char *_cstr, const String &_str)
     String rst(_cstr);
     rst.Append(_str);
     return rst;
+}
+
+void String::RemoveBack(size_t _count)
+{
+    if (_count > m_len) _count = m_len;
+    m_len -= _count;
+    m_data.get()[m_len] = 0;
 }
