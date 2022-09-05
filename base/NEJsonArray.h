@@ -23,5 +23,11 @@ public:
     {
         return m_arrayData.end();
     }
+
+    int64_t ToInt() const = delete;
+    double ToFloat() const = delete;
+    bool ToBool() const = delete;
+    JsonObject ToObject() const = delete;
+    JsonArray ToArray() const = delete;
 };
 } // namespace neapu

@@ -21,6 +21,7 @@ public:
     };
 
     JsonValue();
+    JsonValue(int _data);
     JsonValue(int64_t _data);
     JsonValue(double _data);
     JsonValue(bool _data);
@@ -51,6 +52,7 @@ public:
         return m_type == Type::arrayValue;
     }
 
+    JsonValue& operator=(int _data);
     JsonValue& operator=(int64_t _data);
     JsonValue& operator=(double _data);
     JsonValue& operator=(bool _data);
@@ -58,7 +60,11 @@ public:
     JsonValue& operator=(const JsonObject& _data);
     JsonValue& operator=(const JsonArray& _data);
 
-    int64_t ToInt() const
+    int ToInt() const
+    {
+        return static_cast<int>(m_intData);
+    }
+    int64_t ToInt64() const
     {
         return m_intData;
     }

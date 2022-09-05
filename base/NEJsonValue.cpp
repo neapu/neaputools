@@ -12,6 +12,11 @@ JsonValue::JsonValue()
 {
 }
 
+JsonValue::JsonValue(int _data)
+    : m_intData(static_cast<int64_t>(_data)), m_type(Type::intValue)
+{
+}
+
 JsonValue::JsonValue(int64_t _data)
     : m_intData(_data), m_type(Type::intValue)
 {
@@ -46,6 +51,14 @@ JsonArray JsonValue::ToArray() const
         return JsonArray(*this);
     }
     return JsonArray();
+}
+
+JsonValue &JsonValue::operator=(int _data)
+{
+    Clear();
+    m_type = Type::intValue;
+    m_intData = static_cast<int64_t>(_data);
+    return (*this);
 }
 
 JsonValue &JsonValue::operator=(int64_t _data)
@@ -125,10 +138,10 @@ String JsonValue::ToString() const
         return m_stringData;
         break;
     case Type::arrayValue:
-        return static_cast<const JsonArray*>(this)->ToString();
+        return static_cast<const JsonArray *>(this)->ToString();
         break;
     case Type::objectValue:
-        return static_cast<const JsonObject*>(this)->ToString();
+        return static_cast<const JsonObject *>(this)->ToString();
         break;
     }
     return String("NULL");
