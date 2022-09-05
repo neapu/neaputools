@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace neapu {
-class JsonValue {
+class NEAPU_BASE_EXPORT JsonValue {
     friend class JsonObject;
     friend class JsonArray;
     friend class JsonReader;

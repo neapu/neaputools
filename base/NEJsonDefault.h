@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base_pub.h"
 #include <map>
 #include <vector>
 #include <memory>

@@ -5,7 +5,7 @@
 #include "NEString.h"
 
 namespace neapu {
-class JsonArray : public JsonValue {
+class NEAPU_BASE_EXPORT JsonArray : public JsonValue {
     friend class JsonValue;
     friend class JsonObject;
 

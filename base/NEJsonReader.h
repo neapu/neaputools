@@ -5,7 +5,7 @@
 #include <cstddef>
 
 namespace neapu{
-class JsonReader{
+class NEAPU_BASE_EXPORT JsonReader{
 public:
     bool Parse(const String& _jsonString, JsonValue& _root);
 
