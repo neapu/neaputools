@@ -632,3 +632,18 @@ void String::RemoveBack(size_t _count)
     m_len -= _count;
     m_data.get()[m_len] = 0;
 }
+
+Logger& operator<<(Logger& _logger, const String& _err)
+{
+    return _logger << _err.ToStdString();
+}
+
+Logger& operator<<(Logger& _logger, String& _err)
+{
+    return _logger << _err.ToStdString();
+}
+
+NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, String&& _err)
+{
+    return _logger << _err.ToStdString();
+}

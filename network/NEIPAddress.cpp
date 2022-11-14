@@ -78,3 +78,8 @@ NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const IPAddress&
 {
 	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
 }
+
+NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, IPAddress&& _addr)
+{
+	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
+}

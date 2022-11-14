@@ -23,6 +23,7 @@ add_subdirectory(base)
 add_subdirectory(network)
 add_subdirectory(http)
 add_subdirectory(redis_connector)
+add_subdirectory(logger)
 
 if(NEAPU_BUILD_DEMO)
   add_subdirectory(demo)

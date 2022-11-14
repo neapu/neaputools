@@ -12,6 +12,7 @@
 #include <string>
 #include <stdint.h>
 #include <vector>
+#include <logger/logger.h>
 
 namespace neapu {
 class ByteArray;
@@ -205,4 +206,7 @@ protected:
 };
 using StringList = std::vector<String>;
 NEAPU_BASE_EXPORT String operator+(const char *_cstr, const String &_str);
+NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, const String& _err);
+NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, String& _err);
+NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, String&& _err);
 } // namespace neapu

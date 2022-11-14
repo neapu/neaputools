@@ -38,4 +38,5 @@ namespace neapu {
 		int Port() const { return port; }
 	};
 	NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const IPAddress& _addr);
+	NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, IPAddress&& _addr);
 }
