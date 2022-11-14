@@ -5,3 +5,4 @@ out/
 .vs/
 demo/configs/
 demo/udptest/run_client.bat
+neapu-config.h

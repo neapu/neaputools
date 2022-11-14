@@ -12,7 +12,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
-include_directories(${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 message("install path:" ${CMAKE_INSTALL_PREFIX})
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include/neaputools)
@@ -21,9 +21,12 @@ set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include/neaputools)
 # uninstall target
 add_subdirectory(base)
 add_subdirectory(network)
-add_subdirectory(demo)
 add_subdirectory(http)
 add_subdirectory(redis_connector)
+
+if(NEAPU_BUILD_DEMO)
+  add_subdirectory(demo)
+endif()
 if(NOT TARGET uninstall)
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
@@ -35,5 +38,5 @@ if(NOT TARGET uninstall)
 endif()
 configure_file(
     "neapu-config.h.in"
-    "neapu-config.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/neapu-config.h"
 )
