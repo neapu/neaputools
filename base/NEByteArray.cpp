@@ -214,3 +214,18 @@ String ByteArray::ToHex(bool _upper)
     }
     return String(buf.get(), m_len*2);
 }
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, const neapu::ByteArray& _byteArray)
+{
+    return _logger << std::string((char*)_byteArray.Data(), _byteArray.Length());
+}
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::ByteArray& _byteArray)
+{
+    return _logger << std::string((char*)_byteArray.Data(), _byteArray.Length());
+}
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::ByteArray&& _byteArray)
+{
+    return _logger << std::string((char*)_byteArray.Data(), _byteArray.Length());
+}

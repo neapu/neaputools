@@ -6,10 +6,20 @@
 #include "NENetworkError.h"
 #include "network_pub.h"
 #include <NEByteArray.h>
-namespace neapu{
+
+namespace neapu {
+class NetChannel;
+}
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, const neapu::NetChannel& _netclient);
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::NetChannel& _netclient);
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::NetChannel&& _netclient);
+namespace neapu {
 class Logger;
-class NEAPU_NETWORK_EXPORT NetChannel{
-    friend NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetChannel& _netclient);
+class NEAPU_NETWORK_EXPORT NetChannel {
+    friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, const neapu::NetChannel& _netclient);
+    friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, neapu::NetChannel& _netclient);
+    friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, neapu::NetChannel&& _netclient);
+
 public:
     ByteArray Read(size_t _len);
     ByteArray ReadAll();
@@ -18,14 +28,24 @@ public:
     bool IsClosed();
     void SetUserData(std::shared_ptr<void*> _userData);
     std::shared_ptr<void*> GetUserData() const;
-    IPAddress GetAddress() const { return m_address; }
-    NetworkError GetError() const { return m_err; }
-    void SetError(const NetworkError& _err) { m_err = _err; }
+    IPAddress GetAddress() const
+    {
+        return m_address;
+    }
+    NetworkError GetError() const
+    {
+        return m_err;
+    }
+    void SetError(const NetworkError& _err)
+    {
+        m_err = _err;
+    }
     NetChannel(int _fd, const IPAddress& _addr)
         : m_fd(_fd)
         , m_address(_addr)
     {}
     void SetLastError(int _err, String _str);
+
 private:
     int m_fd;
     std::mutex m_bufferLock;
@@ -34,5 +54,5 @@ private:
     IPAddress m_address;
     NetworkError m_err;
 };
-NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetChannel& _netclient);
-}
+
+} // namespace neapu

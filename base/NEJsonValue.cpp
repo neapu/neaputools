@@ -146,3 +146,18 @@ String JsonValue::ToString() const
     }
     return String("NULL");
 }
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, const neapu::JsonValue& _jsonValue)
+{
+    return _logger << _jsonValue.ToString();
+}
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::JsonValue& _jsonValue)
+{
+    return _logger << _jsonValue.ToString();
+}
+
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::JsonValue&& _jsonValue)
+{
+    return _logger << _jsonValue.ToString();
+}

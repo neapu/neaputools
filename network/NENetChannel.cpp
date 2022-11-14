@@ -96,7 +96,17 @@ std::shared_ptr<void*> NetChannel::GetUserData() const
     return m_userData;
 }
 
-NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const NetChannel& _NetChannel)
+NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const NetChannel& _netclient)
 {
-    return _logger << "[Class NetChannel][fd:" << _NetChannel.m_fd << "][address:" << _NetChannel.GetAddress() << "]";
+    return _logger << "[Class NetChannel][fd:" << _netclient.m_fd << "][address:" << _netclient.GetAddress() << "]";
+}
+
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::NetChannel& _netclient)
+{
+    return _logger << "[Class NetChannel][fd:" << _netclient.m_fd << "][address:" << _netclient.GetAddress() << "]";
+}
+
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::NetChannel&& _netclient)
+{
+    return _logger << "[Class NetChannel][fd:" << _netclient.m_fd << "][address:" << _netclient.GetAddress() << "]";
 }

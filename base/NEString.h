@@ -206,7 +206,8 @@ protected:
 };
 using StringList = std::vector<String>;
 NEAPU_BASE_EXPORT String operator+(const char *_cstr, const String &_str);
-NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, const String& _err);
-NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, String& _err);
-NEAPU_BASE_EXPORT Logger& operator<<(Logger& _logger, String&& _err);
+
 } // namespace neapu
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, const neapu::String& _err);
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::String& _err);
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::String&& _err);

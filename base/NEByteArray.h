@@ -1,5 +1,6 @@
 #pragma once
 #include "base_pub.h"
+#include "logger/logger.h"
 #include <string.h>
 #include <string>
 #include <stdint.h>
@@ -88,3 +89,6 @@ protected:
     size_t m_max;
 };
 } // namespace neapu
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, const neapu::ByteArray& _byteArray);
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::ByteArray& _byteArray);
+NEAPU_BASE_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::ByteArray&& _byteArray);

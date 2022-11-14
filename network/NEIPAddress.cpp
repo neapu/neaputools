@@ -74,12 +74,17 @@ neapu::String neapu::IPAddress::ToString() const
 	return rst;
 }
 
-NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, const IPAddress& _addr)
+NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const IPAddress& _addr)
 {
 	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
 }
 
-NEAPU_NETWORK_EXPORT Logger& neapu::operator<<(Logger& _logger, IPAddress&& _addr)
+NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::IPAddress& _addr)
+{
+	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
+}
+
+NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, IPAddress&& _addr)
 {
 	return _logger << "[" << _addr.ToString() << "][" << _addr.Port() << "]";
 }
