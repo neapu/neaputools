@@ -11,11 +11,11 @@
 #include "NEUtil.h"
 
 #ifdef WIN32
-static void *memmem(const void *l, size_t l_len, const void *s, size_t s_len)
+static void* memmem(const void* l, size_t l_len, const void* s, size_t s_len)
 {
     register char *cur, *last;
-    const char *cl = (const char *)l;
-    const char *cs = (const char *)s;
+    const char* cl = (const char*)l;
+    const char* cs = (const char*)s;
 
     /* we need something to compare */
     if (l_len == 0 || s_len == 0)
@@ -27,12 +27,12 @@ static void *memmem(const void *l, size_t l_len, const void *s, size_t s_len)
 
     /* special case where s_len == 1 */
     if (s_len == 1)
-        return (void *)memchr(l, (int)*cs, l_len);
+        return (void*)memchr(l, (int)*cs, l_len);
 
     /* the last position where its possible to find "s" in "l" */
-    last = (char *)cl + l_len - s_len;
+    last = (char*)cl + l_len - s_len;
 
-    for (cur = (char *)cl; cur <= last; cur++)
+    for (cur = (char*)cl; cur <= last; cur++)
         if (cur[0] == cs[0] && memcmp(cur, cs, s_len) == 0)
             return cur;
 
@@ -54,13 +54,13 @@ String::String(size_t len)
     extend(len);
 }
 
-String::String(const String &data)
+String::String(const String& data)
     : String()
 {
     Append(data);
 }
 
-String::String(String &&data) noexcept
+String::String(String&& data) noexcept
 {
     m_data = std::move(data.m_data);
     data.m_data = nullptr;
@@ -70,13 +70,13 @@ String::String(String &&data) noexcept
     data.m_max = 0;
 }
 
-String::String(const char *data, size_t len)
+String::String(const char* data, size_t len)
     : String()
 {
     Append(data, len);
 }
 
-neapu::String::String(const char *str)
+neapu::String::String(const char* str)
     : String()
 {
     if (str) {
@@ -84,7 +84,7 @@ neapu::String::String(const char *str)
     }
 }
 
-neapu::String::String(const ByteArray &_ba)
+neapu::String::String(const ByteArray& _ba)
     : String(_ba.Length())
 {
     memcpy(m_data.get(), _ba.Data(), _ba.Length());
@@ -92,7 +92,7 @@ neapu::String::String(const ByteArray &_ba)
     m_data.get()[m_len] = 0;
 }
 
-neapu::String::String(const std::string &_str)
+neapu::String::String(const std::string& _str)
     : String(_str.c_str(), _str.length())
 {}
 
@@ -100,13 +100,13 @@ String::~String() noexcept
 {
 }
 
-String &String::Append(const String &data)
+String& String::Append(const String& data)
 {
     this->Append(data.ToCString(), data.Length());
     return *this;
 }
 
-String &String::Append(const char *data, size_t len)
+String& String::Append(const char* data, size_t len)
 {
     if (len == 0)
         return (*this);
@@ -119,7 +119,7 @@ String &String::Append(const char *data, size_t len)
     return (*this);
 }
 
-String &String::Append(const char c)
+String& String::Append(const char c)
 {
     if (1 + m_len >= m_max) {
         extend(1 + m_len);
@@ -130,7 +130,7 @@ String &String::Append(const char c)
     return (*this);
 }
 
-String &String::Append(int number, NumberBase _base)
+String& String::Append(int number, NumberBase _base)
 {
     if (_base != NumberBase::Decimalism) {
         return Append(static_cast<unsigned int>(number), _base);
@@ -140,12 +140,12 @@ String &String::Append(int number, NumberBase _base)
     return Append(temp);
 }
 
-String &String::Append(const char *str)
+String& String::Append(const char* str)
 {
     return Append(str, strlen(str));
 }
 
-String &String::Append(long long number, NumberBase _base)
+String& String::Append(long long number, NumberBase _base)
 {
     if (_base != NumberBase::Decimalism) {
         return Append(static_cast<unsigned long long>(number), _base);
@@ -155,7 +155,7 @@ String &String::Append(long long number, NumberBase _base)
     return Append(temp);
 }
 
-String &String::Append(unsigned int number, NumberBase _base)
+String& String::Append(unsigned int number, NumberBase _base)
 {
     char temp[64] = {0};
     switch (_base) {
@@ -177,7 +177,7 @@ String &String::Append(unsigned int number, NumberBase _base)
     return Append(temp);
 }
 
-String &String::Append(unsigned long long number, NumberBase _base)
+String& String::Append(unsigned long long number, NumberBase _base)
 {
     char temp[65];
     switch (_base) {
@@ -200,14 +200,14 @@ String &String::Append(unsigned long long number, NumberBase _base)
     return Append(temp);
 }
 
-String &String::Append(double number)
+String& String::Append(double number)
 {
     char temp[64];
     sprintf(temp, "%f", number);
     return Append(temp);
 }
 
-String &neapu::String::Argument(const String &data)
+String& neapu::String::Argument(const String& data)
 {
     size_t index = IndexOf("%1");
     if (index != npos) {
@@ -228,42 +228,42 @@ String &neapu::String::Argument(const String &data)
     return *this;
 }
 
-String &neapu::String::Argument(const char *data, size_t len)
+String& neapu::String::Argument(const char* data, size_t len)
 {
     return Argument(String(data, len));
 }
 
-String &neapu::String::Argument(const char *str)
+String& neapu::String::Argument(const char* str)
 {
     return Argument(String(str));
 }
 
-String &neapu::String::Argument(const char c)
+String& neapu::String::Argument(const char c)
 {
     return Argument(String().Append(c));
 }
 
-String &neapu::String::Argument(int number, NumberBase _base)
+String& neapu::String::Argument(int number, NumberBase _base)
 {
     return Argument(ToString(number, _base));
 }
 
-String &neapu::String::Argument(long long number, NumberBase _base)
+String& neapu::String::Argument(long long number, NumberBase _base)
 {
     return Argument(ToString(number, _base));
 }
 
-String &neapu::String::Argument(unsigned int number, NumberBase _base)
+String& neapu::String::Argument(unsigned int number, NumberBase _base)
 {
     return Argument(ToString(number, _base));
 }
 
-String &neapu::String::Argument(unsigned long long number, NumberBase _base)
+String& neapu::String::Argument(unsigned long long number, NumberBase _base)
 {
     return Argument(ToString(number, _base));
 }
 
-String &neapu::String::Argument(double number)
+String& neapu::String::Argument(double number)
 {
     return Argument(ToString(number));
 }
@@ -273,8 +273,8 @@ std::wstring String::ToWString() const
 {
     setlocale(LC_ALL, "chs");
     int len = MultiByteToWideChar(CP_ACP, 0, m_data.get(), m_len, nullptr, 0);
-    int mallocLen = sizeof(wchar_t *) * (len + 1);
-    wchar_t *temp = (wchar_t *)malloc(mallocLen);
+    int mallocLen = sizeof(wchar_t*) * (len + 1);
+    wchar_t* temp = (wchar_t*)malloc(mallocLen);
     len = MultiByteToWideChar(CP_ACP, 0, m_data.get(), m_len, temp, len);
     std::wstring strRst(temp, len);
     free(temp);
@@ -349,21 +349,21 @@ size_t String::IndexOf(char _c, size_t _begin) const
 {
     if (_begin >= m_len)
         return -1;
-    char *datePtr = m_data.get();
-    char *p = (char *)memchr(datePtr + _begin, _c, m_len - _begin);
+    char* datePtr = m_data.get();
+    char* p = (char*)memchr(datePtr + _begin, _c, m_len - _begin);
     if (p) {
         return p - datePtr;
     }
     return -1;
 }
 
-size_t String::IndexOf(const String &_ba, size_t _begin) const
+size_t String::IndexOf(const String& _ba, size_t _begin) const
 {
     if (_begin >= m_len)
         return -1;
     if (_ba.Length() == 0 || _ba.Length() == -1)
         return -1;
-    auto p = (char *)memmem(Ptr() + _begin, m_len, _ba.Ptr(), _ba.Length());
+    auto p = (char*)memmem(Ptr() + _begin, m_len, _ba.Ptr(), _ba.Length());
     if (p) {
         return p - Ptr();
     }
@@ -423,7 +423,7 @@ void String::Clear()
     extend(0);
 }
 
-std::vector<String> String::Split(const String &_separator, bool _skepEmpty)
+std::vector<String> String::Split(const String& _separator, bool _skepEmpty) const
 {
     std::vector<String> rst;
     size_t index = 0;
@@ -449,8 +449,7 @@ std::vector<String> String::Split(const String &_separator, bool _skepEmpty)
     return rst;
 }
 
-std::vector<String> neapu::String::Split(const char _separator,
-                                         bool _skepEmpty)
+std::vector<String> neapu::String::Split(const char _separator, bool _skepEmpty) const
 {
     std::vector<String> rst;
     size_t index = 0;
@@ -476,7 +475,7 @@ std::vector<String> neapu::String::Split(const char _separator,
     return rst;
 }
 
-bool neapu::String::Replace(const String &_before, const String &_after)
+bool neapu::String::Replace(const String& _before, const String& _after)
 {
     size_t index = IndexOf(_before);
     if (index == npos)
@@ -500,23 +499,28 @@ bool neapu::String::Replace(const String &_before, const String &_after)
     return true;
 }
 
-bool neapu::String::Contain(const String &_str) const
+bool neapu::String::Contain(const String& _str) const
 {
     return IndexOf(_str) != npos;
 }
 
+String neapu::String::RemoveHeadAndTailSpace()
+{
+    return RemoveHeadAndTailSpace(*this);
+}
+
 //去除头尾空格
-String neapu::String::RemoveHeadAndTailSpace(String &&str)
+String neapu::String::RemoveHeadAndTailSpace(const String& str)
 {
     size_t begin;
     for (begin = 0; begin < str.Length(); begin++) {
-        if (str[begin] != ' ') {
+        if (str[end] != ' ' || str[end] == '\r' || str[end] == '\n' || str[end] == '\t') {
             break;
         }
     }
     int end;
     for (end = (int)str.Length() - 1; end >= 0; end--) {
-        if (str[end] != ' ') {
+        if (str[end] != ' ' || str[end] == '\r' || str[end] == '\n' || str[end] == '\t') {
             break;
         }
     }
@@ -551,14 +555,14 @@ String neapu::String::ToString(double number)
 void String::extend(size_t len)
 {
     size_t newlen = len + BASE_LEN - (len % BASE_LEN);
-    char *newData = new char[newlen];
+    char* newData = new char[newlen];
     memset(newData, 0, newlen);
     m_max = newlen;
     memcpy(newData, m_data.get(), m_len);
     m_data.reset(newData);
 }
 
-String String::operator+(const String &_str)
+String String::operator+(const String& _str)
 {
     String rst;
     rst.Append(*this);
@@ -566,7 +570,7 @@ String String::operator+(const String &_str)
     return rst;
 }
 
-void String::operator+=(const String &_str)
+void String::operator+=(const String& _str)
 {
     this->Append(_str);
 }
@@ -588,7 +592,7 @@ String String::ToHex(bool _upper) const
     return String(buf.get(), m_len * 2);
 }
 
-String String::FromHex(const String &_hex)
+String String::FromHex(const String& _hex)
 {
     size_t len = _hex.Length() / 2 + 1;
     auto buf = std::unique_ptr<char>(new char[len]);
@@ -614,12 +618,12 @@ String String::ToBase64() const
     return Encryption::Base64Encode(*this);
 }
 
-String String::FromBase64(const String &_base64)
+String String::FromBase64(const String& _base64)
 {
     return String(Encryption::Base64Decode(_base64));
 }
 
-String neapu::operator+(const char *_cstr, const String &_str)
+String neapu::operator+(const char* _cstr, const String& _str)
 {
     String rst(_cstr);
     rst.Append(_str);

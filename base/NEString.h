@@ -117,8 +117,8 @@ public:
     {
         return m_len == 0;
     }
-    std::vector<String> Split(const String &_separator, bool _skepEmpty = false);
-    std::vector<String> Split(const char _separator, bool _skepEmpty = false);
+    std::vector<String> Split(const String &_separator, bool _skepEmpty = false) const;
+    std::vector<String> Split(const char _separator, bool _skepEmpty = false) const;
     bool Replace(const String &_before, const String &_after);
     bool Contain(const String &_str) const;
 
@@ -184,10 +184,12 @@ public:
     String ToBase64() const;
 
     void RemoveBack(size_t _count);
+    //去除头尾空格
+    String RemoveHeadAndTailSpace();
 
 public:
     //去除头尾空格
-    static String RemoveHeadAndTailSpace(String &&str);
+    static String RemoveHeadAndTailSpace(const String &str);
     static String ToString(int number, NumberBase _base = NumberBase::Decimalism);
     static String ToString(long long number, NumberBase _base = NumberBase::Decimalism);
     static String ToString(unsigned int number, NumberBase _base = NumberBase::Decimalism);
