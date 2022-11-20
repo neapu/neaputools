@@ -4,6 +4,7 @@
 #include <NEUtil.h>
 #include <neapu-config.h>
 #include <signal.h>
+#include <base/NESettings.h>
 using namespace std;
 using namespace neapu;
 
@@ -16,12 +17,12 @@ int main()
 	String address = "0.0.0.0";
 	int port = 9884;
 	if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/udp.conf") == 0) {
-		if (set.GetValue("udp", "type", "IPv4") == "IPv6") {
+		if (set.GetValue("type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}
 
-		address = set.GetValue("udp", "address", "0.0.0.0");
-		port = (int)set.GetValue("udp", "port", "9884").ToInt();
+		address = set.GetValue("address", "0.0.0.0");
+		port = (int)set.GetValue("port", "9884").ToInt();
 	}
 	UdpBase udp;
 	int rc = udp.Init(1, IPAddress::MakeAddress(type, address, port));

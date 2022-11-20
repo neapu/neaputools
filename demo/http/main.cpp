@@ -4,6 +4,7 @@
 #include <neapu-config.h>
 #include <NEHttpHandle.h>
 #include <signal.h>
+#include <base/NESettings.h>
 using namespace neapu;
 
 inline constexpr unsigned long long operator"" _kb(unsigned long long i)
@@ -17,14 +18,13 @@ int main()
     IPAddress::Type type = IPAddress::Type::IPv4;
     String address;
     int port = 9884;
-    String title = "http";
     if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/http.conf") == 0) {
-        if (set.GetValue(title, "type", "IPv4") == "IPv6") {
+        if (set.GetValue("type", "IPv4") == "IPv6") {
             type = IPAddress::Type::IPv6;
         }
 
-        address = set.GetValue(title, "address", String());
-        port = (int)set.GetValue(title, "port", "9884").ToInt();
+        address = set.GetValue("address", String());
+        port = (int)set.GetValue("port", "9884").ToInt();
     }
 
     int rc = 0;

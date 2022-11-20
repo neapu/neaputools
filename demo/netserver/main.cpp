@@ -5,6 +5,7 @@
 #include "NEByteArray.h"
 #include <neapu-config.h>
 #include <signal.h>
+#include <base/NESettings.h>
 
 using namespace neapu;
 int main(int argc, char** argv)
@@ -14,12 +15,12 @@ int main(int argc, char** argv)
     String address = "0.0.0.0";
     int port = 9884;
     if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/server.conf") == 0) {
-        if (set.GetValue("server", "type", "IPv4") == "IPv6") {
+        if (set.GetValue("type", "IPv4") == "IPv6") {
             type = IPAddress::Type::IPv6;
         }
 
-        address = set.GetValue("server", "address", "0.0.0.0");
-        port = (int)set.GetValue("server", "port", "9884").ToInt();
+        address = set.GetValue("address", "0.0.0.0");
+        port = (int)set.GetValue("port", "9884").ToInt();
     }
     TcpServer tcpServer;
 

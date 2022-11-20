@@ -4,6 +4,7 @@
 #include <NEUtil.h>
 #include <neapu-config.h>
 #include <signal.h>
+#include <base/NESettings.h>
 using namespace neapu;
 using namespace std;
 
@@ -14,12 +15,12 @@ int main()
 	String address = "127.0.0.1";
 	int port = 9884;
 	if (set.Init(String(NETOOLS_SOURCE_DIR)+"/demo/configs/client.conf") == 0) {
-		if (set.GetValue("client", "type", "IPv4") == "IPv6") {
+		if (set.GetValue("type", "IPv4") == "IPv6") {
 			type = IPAddress::Type::IPv6;
 		}
 		
-		address = set.GetValue("client", "address", "127.0.0.1");
-		port = (int)set.GetValue("client", "port", "9884").ToInt();
+		address = set.GetValue("address", "127.0.0.1");
+		port = (int)set.GetValue("port", "9884").ToInt();
 	}
 	int rc = 0;
 

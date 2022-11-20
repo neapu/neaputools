@@ -11,7 +11,7 @@ public:
     Settings() {}
 
     int Init(const String& _filename);
-    String GetValue(const String& key, bool _loadFile = false);
+    String GetValue(const String& key, const String& _default, bool _loadFile = false);
     int SetValue(const String& key, const String& value);
 private:
     int LoadFile();

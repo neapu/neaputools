@@ -31,16 +31,16 @@ int Settings::Init(const String& _filename)
     return LoadFile();
 }
 
-String Settings::GetValue(const String& key, bool _loadFile)
+String Settings::GetValue(const String& key, const String& _default, bool _loadFile)
 {
     if (_loadFile) {
         int ret = LoadFile();
         if (ret < 0) {
-            return String();
+            return _default;
         }
     }
     if (!m_items.contains(key)) {
-        return String();
+        return _default;
     }
     return m_items[key];
 }
