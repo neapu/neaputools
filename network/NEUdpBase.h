@@ -1,13 +1,13 @@
 #pragma once
 #include <stdint.h>
 #include <functional>
-#include "NEIPAddress.h"
-#include "NENetworkError.h"
-#include <NEThreadPoll.h>
-#include <NEString.h>
-#include <NESafeQueue.h>
-#include "network_pub.h"
-#include "NENetBase.h"
+#include "network/NEIPAddress.h"
+#include "network/NENetworkError.h"
+#include <base/NEThreadPoll.h>
+#include <base/NEString.h>
+#include <base/NESafeQueue.h>
+#include "network/network_pub.h"
+#include "network/NENetBase.h"
 
 
 namespace neapu {

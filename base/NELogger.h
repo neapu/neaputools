@@ -1,3 +1,3 @@
 #pragma once
-#include "NEString.h"
+#include "base/NEString.h"
 #include <logger/logger.h>

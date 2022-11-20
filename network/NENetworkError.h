@@ -1,7 +1,7 @@
 #pragma once
-#include <NEString.h>
-#include <NELogger.h>
-#include "network_pub.h"
+#include <base/NEString.h>
+#include <logger/logger.h>
+#include "network/network_pub.h"
 
 #define ERROR_SOCKET_OPEN -1
 #define ERROR_BIND -2

@@ -1,9 +1,9 @@
 #pragma once
-#include <NEString.h>
+#include <base/NEString.h>
 #include <functional>
 #include <vector>
 #include <map>
-#include "NEHttpPublic.h"
+#include "http/NEHttpPublic.h"
 #include <memory>
 
 namespace neapu {

@@ -1,6 +1,6 @@
 #pragma once
-#include "NEString.h"
-#include "base_pub.h"
+#include "base/NEString.h"
+#include "base/base_pub.h"
 
 namespace neapu {
     class NEAPU_BASE_EXPORT StringStream : public String {

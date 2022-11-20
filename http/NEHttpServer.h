@@ -1,7 +1,7 @@
 #pragma once
-#include "NEHttpPublic.h"
-#include "NETcpServer.h"
-#include "NERouter.h"
+#include "http/NEHttpPublic.h"
+#include "network/NETcpServer.h"
+#include "http/NERouter.h"
 
 namespace neapu {
     using HttpHandlePtr = std::shared_ptr<neapu::HttpHandle>;
@@ -24,7 +24,7 @@ namespace neapu {
         /*********************************
         * 设置HTTP请求路径回调
         * 路径支持在最后加通配符*
-        * 例如：/home/*
+        * 例如：/home/ *
         * 不支持在路径中间加通配符
         *********************************/
         HttpServer& Get(const String& _path, HttpServerCallback);

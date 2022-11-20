@@ -5,9 +5,9 @@
  **************************************************************************************/
 #pragma once
 #include <utility>
-#include <NEString.h>
-#include "network_pub.h"
-#include <NELogger.h>
+#include <base/NEString.h>
+#include "network/network_pub.h"
+#include <logger/logger.h>
 
 struct sockaddr_in;
 struct sockaddr_in6;

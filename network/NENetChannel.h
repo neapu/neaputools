@@ -1,11 +1,11 @@
 #pragma once
 #include <mutex>
 #include <memory>
-#include "NEString.h"
-#include "NEIPAddress.h"
-#include "NENetworkError.h"
-#include "network_pub.h"
-#include <NEByteArray.h>
+#include "base/NEString.h"
+#include "network/NEIPAddress.h"
+#include "network/NENetworkError.h"
+#include "network/network_pub.h"
+#include <base/NEByteArray.h>
 
 namespace neapu {
 class NetChannel;

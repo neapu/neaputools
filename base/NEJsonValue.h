@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NEJsonDefault.h"
-#include "NEString.h"
+#include "base/NEJsonDefault.h"
+#include "base/NEString.h"
 #include "logger/logger.h"
 #include <cstdint>
 

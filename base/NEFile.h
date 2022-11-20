@@ -1,7 +1,7 @@
 #pragma once
-#include "base_pub.h"
-#include "NEString.h"
-#include "NEByteArray.h"
+#include "base/base_pub.h"
+#include "base/NEString.h"
+#include "base/NEByteArray.h"
 #include <stdio.h>
 namespace neapu {
 class NEAPU_BASE_EXPORT File {

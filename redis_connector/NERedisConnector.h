@@ -1,8 +1,8 @@
 #pragma once
-#include <NEString.h>
+#include <base/NEString.h>
 #include <mutex>
-#include "NERedisPublic.h"
-#include <NETcpClient.h>
+#include "redis_connector/NERedisPublic.h"
+#include <network/NETcpClient.h>
 
 namespace neapu {
 	class NEAPU_READ_CONNECTOR_EXPORT RedisResponse {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NEString.h"
+#include "base/NEString.h"
 #include <cstddef>
 #include <type_traits>
 namespace neapu {

@@ -1,13 +1,13 @@
 #pragma once
-#include "NENetBase.h"
-#include "network_pub.h"
+#include "network/NENetBase.h"
+#include "network/network_pub.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "NENetChannel.h"
-#include "NEIPAddress.h"
-#include "NENetworkError.h"
-#include "NEByteArray.h"
+#include "network/NENetChannel.h"
+#include "network/NEIPAddress.h"
+#include "network/NENetworkError.h"
+#include "base/NEByteArray.h"
 
 namespace neapu {
 	class NEAPU_NETWORK_EXPORT TcpClient : public NetBase {

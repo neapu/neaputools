@@ -6,14 +6,14 @@
  ************************************************************/
 #pragma once
 #include <stdint.h>
-#include <NEThreadPoll.h>
-#include <NEString.h>
-#include <NESafeQueue.h>
+#include <base/NEThreadPoll.h>
+#include <base/NEString.h>
+#include <base/NESafeQueue.h>
 #include <functional>
 #include <map>
-#include "NEEventBase.h"
-#include "NENetworkError.h"
-#include "network_pub.h"
+#include "network/NEEventBase.h"
+#include "network/NENetworkError.h"
+#include "network/network_pub.h"
 
 using SocketEventCallback = std::function<void(evutil_socket_t, EventHandle)>;
 

@@ -1,11 +1,12 @@
 #ifndef __NESETTINGS_H__
 #define __NESETTINGS_H__
 
+#include "base/base_pub.h"
 #include "base/NEFile.h"
 #include "base/NEString.h"
 #include <map>
 namespace neapu {
-class Settings {
+class NEAPU_BASE_EXPORT Settings {
 public:
     Settings() {}
 

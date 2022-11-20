@@ -1,8 +1,8 @@
 #pragma once
 
-#include "NEJsonDefault.h"
-#include "NEJsonValue.h"
-#include "NEString.h"
+#include "base/NEJsonDefault.h"
+#include "base/NEJsonValue.h"
+#include "base/NEString.h"
 
 namespace neapu {
 class NEAPU_BASE_EXPORT JsonArray : public JsonValue {
