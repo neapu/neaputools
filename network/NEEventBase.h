@@ -9,7 +9,7 @@
 #include <map>
 #include <memory>
 #include <functional>
-#include "network_pub.h"
+#include "network/network_pub.h"
 
 #ifndef evutil_socket_t
 #ifdef WIN32
