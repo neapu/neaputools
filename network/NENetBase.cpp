@@ -1,3 +1,4 @@
+#ifdef USE_LIBEVENT
 #include "NENetBase.h"
 #ifdef _WIN32
 #include <Windows.h>
@@ -137,3 +138,4 @@ EventHandle neapu::NetBase::AddSocket(evutil_socket_t _fd, EventType _events, bo
 	m_eventList[rst] = std::shared_ptr<Event>(new Event{ _fd, rst, _cb });
 	return rst;
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef USE_LIBEVEMT
 #include "NEUdpBase.h"
 #include <signal.h>
 #include <event2/event.h>
@@ -210,3 +211,4 @@ void neapu::UdpBase::Stop()
     }
     NetBase::Stop();
 }
+#endif

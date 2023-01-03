@@ -1,4 +1,5 @@
 #pragma once
+#ifdef USE_LIBEVENT
 #include "network/NENetBase.h"
 #include "network/network_pub.h"
 #include <thread>
@@ -64,3 +65,4 @@ namespace neapu {
 		NetworkError m_err;
 	};
 }
+#endif

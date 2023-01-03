@@ -5,6 +5,7 @@
  * 所以Windows下不提供线程池
  ************************************************************/
 #pragma once
+#ifdef USE_LIBEVENT
 #include <stdint.h>
 #include <base/NEThreadPoll.h>
 #include <base/NEString.h>
@@ -70,3 +71,4 @@ protected:
 #endif
 };
 } // namespace neapu
+#endif

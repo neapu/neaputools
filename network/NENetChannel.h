@@ -6,6 +6,7 @@
 #include "network/NENetworkError.h"
 #include "network/network_pub.h"
 #include <base/NEByteArray.h>
+#include <network/NESocketBase.h>
 
 namespace neapu {
 class NetChannel;
@@ -15,7 +16,7 @@ NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::Ne
 NEAPU_NETWORK_EXPORT neapu::Logger& operator<<(neapu::Logger& _logger, neapu::NetChannel&& _netclient);
 namespace neapu {
 class Logger;
-class NEAPU_NETWORK_EXPORT NetChannel {
+class NEAPU_NETWORK_EXPORT NetChannel : public SocketBase {
     friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, const neapu::NetChannel& _netclient);
     friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, neapu::NetChannel& _netclient);
     friend NEAPU_NETWORK_EXPORT neapu::Logger& ::operator<<(neapu::Logger& _logger, neapu::NetChannel&& _netclient);
@@ -40,14 +41,17 @@ public:
     {
         m_err = _err;
     }
-    NetChannel(int _fd, const IPAddress& _addr)
-        : m_fd(_fd)
+    NetChannel(SOCKET_FD _fd, const IPAddress& _addr)
+        : SocketBase(_fd)
         , m_address(_addr)
     {}
-    void SetLastError(int _err, String _str);
+    void SetLastError(int _err, String _str)
+    {
+        m_err.code = _err;
+        m_err.str = _str;
+    }
 
-private:
-    int m_fd;
+protected:
     std::mutex m_bufferLock;
     std::mutex m_writeLock;
     std::shared_ptr<void*> m_userData;

@@ -1,5 +1,8 @@
 #include "NENetChannel.h"
+#include "network/network_pub.h"
+#ifdef USE_LIBEVENT
 #include <event2/event.h>
+#endif
 #include "NELogger.h"
 
 using namespace neapu;
@@ -63,9 +66,9 @@ int NetChannel::Write(const ByteArray& _data)
         count = ::send(m_fd, ptr + offset, writeSize, 0);
 #endif // WIN32
         if (count <= 0) {
-            int err = evutil_socket_geterror(m_fd);
+            int err = GetSocketError(m_fd);
             m_err.code = err;
-            m_err.str = evutil_socket_error_to_string(err);
+            m_err.str = GetErrorString(err);
             return count;
         }
         offset += writeSize;
@@ -76,7 +79,11 @@ int NetChannel::Write(const ByteArray& _data)
 void NetChannel::Close()
 {
     if (m_fd) {
-        evutil_closesocket(m_fd);
+#ifdef WIN32
+
+#else
+        close(m_fd);
+#endif
         m_fd = 0;
     }
 }

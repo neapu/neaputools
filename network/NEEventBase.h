@@ -5,6 +5,7 @@
 ***************************************************************************/
 
 #pragma once
+#ifdef USE_LIBEVENT
 
 #include <map>
 #include <memory>
@@ -154,3 +155,4 @@ namespace neapu {
     };
 
 }
+#endif

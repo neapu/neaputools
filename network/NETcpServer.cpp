@@ -1,3 +1,4 @@
+#ifdef USE_LIBEVENT
 #include "NETcpServer.h"
 #include <event2/event.h>
 #include <stdio.h>
@@ -270,3 +271,4 @@ void neapu::TcpServer::Stop()
     }
     NetBase::Stop();
 }
+#endif

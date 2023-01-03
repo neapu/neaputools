@@ -1,3 +1,4 @@
+#ifdef USE_LIBEVENT
 #include "NETcpClient.h"
 #include <event2/event.h>
 #include <functional>
@@ -300,3 +301,4 @@ void neapu::TcpClientSync::SetLastError(int _err, String _errstr)
     m_err.code = _err;
     m_err.str = _errstr;
 }
+#endif

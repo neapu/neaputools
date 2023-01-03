@@ -2,7 +2,7 @@
 #include <base/NEString.h>
 #include <mutex>
 #include "redis_connector/NERedisPublic.h"
-#include <network/NETcpClient.h>
+#include <network/NETcpClient2.h>
 
 namespace neapu {
 	class NEAPU_READ_CONNECTOR_EXPORT RedisResponse {
@@ -44,6 +44,6 @@ namespace neapu {
 		std::mutex m_connectorMutex;
 		String m_responseData;
 		String m_redisError;
-		std::unique_ptr<TcpClientSync> m_tcpClientSync;
+		std::unique_ptr<TcpClient2> m_tcpClientPtr;
 	};
 }

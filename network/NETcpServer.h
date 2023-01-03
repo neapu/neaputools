@@ -1,4 +1,5 @@
 #pragma once
+#ifdef USE_LIBEVENT
 #include "network/network_pub.h"
 #include "network/NENetChannel.h"
 #include <map>
@@ -60,3 +61,4 @@ private:
     std::recursive_mutex m_channelMutex;
 };
 }
+#endif

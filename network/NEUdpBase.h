@@ -1,4 +1,5 @@
 #pragma once
+#ifdef USE_LIBEVENT
 #include <stdint.h>
 #include <functional>
 #include "network/NEIPAddress.h"
@@ -46,3 +47,4 @@ namespace neapu {
 		IPAddress m_address;
 	};
 }
+#endif

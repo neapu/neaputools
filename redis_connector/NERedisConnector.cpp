@@ -1,19 +1,20 @@
 #include "NERedisConnector.h"
 #include "NETcpClient.h"
+#include "NETcpClient2.h"
 using namespace neapu;
 
 int neapu::RedisConnector::Connect(const IPAddress& _addr)
 {
-    if (m_tcpClientSync) {
-        m_tcpClientSync->Close();
-        m_tcpClientSync.reset();
+    if (m_tcpClientPtr) {
+        m_tcpClientPtr->Close();
+        m_tcpClientPtr.reset();
     }
 
-    m_tcpClientSync = std::unique_ptr<TcpClientSync>(new TcpClientSync);
-    int rc = m_tcpClientSync->Connect(_addr);
+    m_tcpClientPtr = std::unique_ptr<TcpClient2>(new neapu::TcpClient2);
+    int rc = m_tcpClientPtr->Connect(_addr);
     if (rc < 0) {
-        m_tcpClientSync->Close();
-        m_tcpClientSync.reset();
+        m_tcpClientPtr->Close();
+        m_tcpClientPtr.reset();
         return rc;
     }
     return 0;
@@ -23,7 +24,7 @@ RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
 {
     RedisResponse rst;
     std::unique_lock<std::mutex> connectorLocker(m_connectorMutex);
-    if (!m_tcpClientSync || !m_tcpClientSync->IsConnected()) {
+    if (!m_tcpClientPtr || !m_tcpClientPtr->IsConnected()) {
         rst._type = RedisResponse::Type::Error;
         rst._errorCode = -1;
         rst._errorString = "no connect";
@@ -38,14 +39,14 @@ RedisResponse neapu::RedisConnector::SyncRunCommand(String _cmd)
             _cmd.Append("\r\n");
         }
     }
-    int rc = m_tcpClientSync->Send(_cmd);
+    int rc = m_tcpClientPtr->Send(_cmd);
     if (rc < 0) {
         rst._type = RedisResponse::Type::Error;
         rst._errorCode = -2;
         rst._errorString = "send error";
         return rst;
     }
-    m_responseData = m_tcpClientSync->Recv();
+    m_responseData = m_tcpClientPtr->Receive();
     if (m_responseData == "+OK\r\n") {
         rst._type = RedisResponse::Type::Success;
         return rst;

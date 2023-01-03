@@ -4,6 +4,8 @@
  * 封装从字符串转换
  **************************************************************************************/
 #pragma once
+#include <sys/socket.h>
+#include <unistd.h>
 #include <utility>
 #include <base/NEString.h>
 #include "network/network_pub.h"
@@ -38,6 +40,7 @@ public:
     }
     static IPAddress MakeAddress(const sockaddr_in& sin);
     static IPAddress MakeAddress(const sockaddr_in6& sin);
+    static IPAddress MakeAddress(const sockaddr_storage& sin);
     static IPAddress MakeAddress(Type _type, String _strIPAddress, int _port);
     void ToSockaddr(void* sin) const;
     String ToString() const;
@@ -45,6 +48,8 @@ public:
     {
         return port;
     }
+    bool IsEmptyAddr() const;
+    socklen_t SockaddrLen() const;
 };
 
 } // namespace neapu

@@ -18,35 +18,35 @@ std::map<String, String> neapu::HttpServer::m_contentTypeMap{
     {"json", "application/json"},
     {"ico", "image/x-icon"}};
 
-int neapu::HttpServer::Init(int _threadNum, const IPAddress &_addr)
+int neapu::HttpServer::Init(int _threadNum, const IPAddress& _addr)
 {
     int rc = 0;
-    rc     = TcpServer::Init(_threadNum, _addr);
+    rc = TcpServer2::Init(_addr, _threadNum);
     return rc;
 }
 
-HttpServer &neapu::HttpServer::Get(const String &_path,
+HttpServer& neapu::HttpServer::Get(const String& _path,
                                    HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::GET);
     return *this;
 }
 
-HttpServer &neapu::HttpServer::Post(const String &_path,
+HttpServer& neapu::HttpServer::Post(const String& _path,
                                     HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::POST);
     return *this;
 }
 
-HttpServer &neapu::HttpServer::All(const String &_path,
+HttpServer& neapu::HttpServer::All(const String& _path,
                                    HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, HttpMethod::ALL);
     return *this;
 }
 
-void neapu::HttpServer::AddRouter(const String &_path, HttpMethod _method,
+void neapu::HttpServer::AddRouter(const String& _path, HttpMethod _method,
                                   HttpServerCallback _cb)
 {
     m_router.Insert(_path, _cb, _method);
@@ -57,13 +57,13 @@ void neapu::HttpServer::HttpLog(bool _log)
     m_log = _log;
 }
 
-void neapu::HttpServer::StaticPath(const String &_reqPath,
-                                   const String &_filePath,
+void neapu::HttpServer::StaticPath(const String& _reqPath,
+                                   const String& _filePath,
                                    const size_t _cacheSize,
                                    const time_t _cacheTimeout,
                                    bool _enableRelativePath)
 {
-    m_staticPath.m_reqPath  = _reqPath;
+    m_staticPath.m_reqPath = _reqPath;
     m_staticPath.m_filePath = _filePath;
     if (m_staticPath.m_filePath.Back() != '\\' && m_staticPath.m_filePath.Back() != '/') {
 #ifdef _WIN32
@@ -73,11 +73,11 @@ void neapu::HttpServer::StaticPath(const String &_reqPath,
 #endif // _WIN32
     }
     m_staticPath.m_enableRelativePath = _enableRelativePath;
-    m_staticFileCacheSize             = _cacheSize;
-    m_staticCacheTimeout              = _cacheTimeout;
+    m_staticFileCacheSize = _cacheSize;
+    m_staticCacheTimeout = _cacheTimeout;
 }
 
-int neapu::HttpServer::HistoryMode(const String &_filePath)
+int neapu::HttpServer::HistoryMode(const String& _filePath)
 {
     File file(_filePath);
     if (!file.Open(File::OpenMode::ReadOnly)) {
@@ -104,7 +104,7 @@ void neapu::HttpServer::SetHttpRequestReceiveSize(size_t _size)
 }
 
 void neapu::HttpServer::OnRequestStaticFile(
-    const String &_reqPath, std::shared_ptr<HttpHandle> _handle)
+    const String& _reqPath, std::shared_ptr<HttpHandle> _handle)
 {
     //排除相对路径，防止跨目录攻击
     if (!m_staticPath.m_enableRelativePath && (_reqPath.Contain("../") || _reqPath.Contain("..\\") || _reqPath.Contain("./") || _reqPath.Contain(".\\"))) {
@@ -112,7 +112,7 @@ void neapu::HttpServer::OnRequestStaticFile(
         _handle->SendResponse(ByteArray());
     }
     if (m_staticFileCache.find(_reqPath) != m_staticFileCache.end()) {
-        auto &cache = m_staticFileCache[_reqPath];
+        auto& cache = m_staticFileCache[_reqPath];
         if (m_staticCacheTimeout && time(nullptr) - cache.m_lastupd < m_staticCacheTimeout) {
             _handle->AddSendHeader("Content-Type", cache.m_contentType);
             _handle->SendResponse(cache.m_data);
@@ -150,18 +150,18 @@ void neapu::HttpServer::OnRequestStaticFile(
     }
 }
 
-void neapu::HttpServer::OnRecvData(std::shared_ptr<neapu::NetChannel> _client)
+void neapu::HttpServer::OnReceive(TcpSocketPtr _socket)
 {
-    std::shared_ptr<HttpHandle> httpHandle(new HttpHandle(_client));
+    std::shared_ptr<HttpHandle> httpHandle(new HttpHandle(_socket));
     int rst = httpHandle->AnalysisRequest(m_httpRequestSize);
     if (rst != 0) {
-        _client->Close();
+        _socket->Close();
         return;
     }
     String path = httpHandle->Path();
     LOG_DEBUG << "Receive request path:" << path;
     HttpMethod method = httpHandle->Method();
-    auto callback     = m_router.Find(path, method);
+    auto callback = m_router.Find(path, method);
     if (callback) {
         callback(httpHandle);
     } else if (method == HttpMethod::GET) {
@@ -178,41 +178,39 @@ void neapu::HttpServer::OnRecvData(std::shared_ptr<neapu::NetChannel> _client)
     }
 }
 
-void neapu::HttpServer::OnAccepted(std::shared_ptr<neapu::NetChannel> _client)
+void neapu::HttpServer::OnAccepted(TcpSocketPtr _socket)
 {
     if (m_log) {
-        Logger(LM_INFO) << "[HttpServer][OnAccepted]" << _client->GetAddress();
+        Logger(LM_INFO) << "[HttpServer][OnAccepted]" << _socket->GetAddress();
     }
 }
 
-void neapu::HttpServer::OnChannelClosed(
-    std::shared_ptr<neapu::NetChannel> _client)
+void neapu::HttpServer::OnClose(TcpSocketPtr _socket)
 {
     if (m_log) {
-        Logger(LM_INFO) << "[HttpServer][OnChannelClosed]" << _client->GetAddress();
+        Logger(LM_INFO) << "[HttpServer][OnChannelClosed]" << _socket->GetAddress();
     }
 }
 
-void neapu::HttpServer::OnChannelError(
-    std::shared_ptr<neapu::NetChannel> _client)
+void neapu::HttpServer::OnError(TcpSocketPtr _socket)
 {
     if (m_log) {
-        Logger(LM_INFO) << "[HttpServer][OnChannelError]" << _client->GetAddress();
+        Logger(LM_INFO) << "[HttpServer][OnChannelError]" << _socket->GetAddress();
     }
 }
 
-void neapu::HttpServer::StaticFileCache::update(ByteArray &&_data,
-                                                String &&_contentType)
+void neapu::HttpServer::StaticFileCache::update(ByteArray&& _data,
+                                                String&& _contentType)
 {
-    m_data        = std::move(_data);
+    m_data = std::move(_data);
     m_contentType = std::move(_contentType);
-    m_lastupd     = time(nullptr);
+    m_lastupd = time(nullptr);
 }
 
-void neapu::HttpServer::StaticFileCache::update(const ByteArray &_data,
-                                                const String &_contentType)
+void neapu::HttpServer::StaticFileCache::update(const ByteArray& _data,
+                                                const String& _contentType)
 {
-    m_data        = _data;
+    m_data = _data;
     m_contentType = _contentType;
-    m_lastupd     = time(nullptr);
+    m_lastupd = time(nullptr);
 }

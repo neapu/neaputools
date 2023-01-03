@@ -1,7 +1,7 @@
 #include "NEString.h"
 #include "NELogger.h"
 #include "NEUtil.h"
-#include "NETcpServer.h"
+#include "NETcpServer2.h"
 #include "NEByteArray.h"
 #include <neapu-config.h>
 #include <signal.h>
@@ -22,9 +22,9 @@ int main(int argc, char** argv)
         address = set.GetValue("address", "0.0.0.0");
         port = (int)set.GetValue("port", "9884").ToInt();
     }
-    TcpServer tcpServer;
+    TcpServer2 tcpServer;
 
-    int rc = tcpServer.Init(1, IPAddress::MakeAddress(type, address, port));
+    int rc = tcpServer.Init(IPAddress::MakeAddress(type, address, port));
 
     if (rc < 0) {
         Logger(LM_ERROR) << "Server Init Error:" << rc << " " << tcpServer.GetError();
@@ -35,22 +35,22 @@ int main(int argc, char** argv)
         Logger(LM_INFO) << "Client Accept:" << *_netChannel;
         });
     
-    tcpServer.OnRecvData([&](std::shared_ptr<NetChannel> _netChannel) {
+    tcpServer.OnReceive([&](std::shared_ptr<NetChannel> _netChannel) {
         ByteArray data = _netChannel->ReadAll();
         Logger(LM_INFO) << "Receive From:" << *_netChannel;
         Logger(LM_INFO) << "Recvice Data:" << data;
         _netChannel->Write(data);
         });
     
-    tcpServer.OnChannelClosed([&](std::shared_ptr<NetChannel> _netChannel) {
+    tcpServer.OnClosed([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_INFO) << "Client Close:" << *_netChannel;
         });
     
-    tcpServer.OnChannelError([&](std::shared_ptr<NetChannel> _netChannel) {
+    tcpServer.OnError([&](std::shared_ptr<NetChannel> _netChannel) {
         Logger(LM_ERROR) << "Channel Error [" << *_netChannel << "]:" << _netChannel->GetError();
     });
 
-    tcpServer.AddSignal(SIGINT, false, [&](int _signal, EventHandle _handle) {
+    tcpServer.AddSignal(SIGINT, [&](int _signal) {
         Logger(LM_INFO) << "SIGINT trigger";
         tcpServer.Stop();
         });
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
         Logger(LM_ERROR) << "Listen Error:" << tcpServer.GetError();
         return rc;
     }
-    rc = tcpServer.Run();
+
     Logger(LM_INFO) << "Server Stop:" << rc;
     return 0;
 }

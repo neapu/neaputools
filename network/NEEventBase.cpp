@@ -1,3 +1,4 @@
+#ifdef USE_LIBEVENT
 #include "NEEventBase.h"
 #include <event2/event.h>
 #include <event2/thread.h>
@@ -215,3 +216,4 @@ EventHandle neapu::EventBase::AddEventImpl(
     }
     return ev;
 }
+#endif

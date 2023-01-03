@@ -1,19 +1,20 @@
 #include <NELogger.h>
-#include <NEEventBase.h>
+#include <NEEventBase2.h>
 #include <signal.h>
 using namespace neapu;
 int main()
 {
-    EventBase eb;
+    EventBase2 eb;
     eb.Init();
 
-    eb.AddTimer(1000, true, [](EventHandle _handle) {
-        Logger(LM_INFO) << "On Timer:" << String::ToString(reinterpret_cast<unsigned long long>(_handle));
+    int id = 0;
+    eb.AddTimer(id ,1000, true, [](int id) {
+        Logger(LM_INFO) << "On Timer:" << id;
         });
-    eb.AddSignal(SIGINT, false, [&](int _signal, EventHandle _handle) {
-        Logger(LM_INFO) << "On Signal:" << _signal << " trigger. " << String::ToString(reinterpret_cast<unsigned long long>(_handle));
-        eb.EventLoopBreak();
+    eb.AddSignal(SIGINT, [&](int _signal) {
+        Logger(LM_INFO) << "On Signal:" << _signal << " trigger. " << _signal;
+        eb.Stop();
         });
 
-    return eb.EventLoop();
+    return eb.LoopStart();
 }

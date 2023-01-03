@@ -52,7 +52,7 @@ int main()
         _handle->SetContentType(HttpHandle::ContentType::Json);
         _handle->SendResponse(String("{\"data\":\"%1\"}").Argument(test));
     });
-    server.AddSignal(SIGINT, false, [&](int, EventHandle) {
+    server.AddSignal(SIGINT, [&](int) {
         Logger(LM_INFO) << "SIGINT trigger";
         server.Stop();
     });
@@ -62,7 +62,7 @@ int main()
         return rc;
     }
     Logger(LM_INFO) << "Http Server Listened:" << server.GetAddress();
-    rc = server.Run();
+    rc = server.LoopStart();
     if (rc < 0) {
         Logger(LM_ERROR) << "Event Loop Error:" << rc;
     }
