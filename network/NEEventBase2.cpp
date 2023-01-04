@@ -3,9 +3,11 @@
 #include "logger/logger.h"
 #include <bits/types/sigset_t.h>
 #include <csignal>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <thread>
+#include <base/NEDateTime.h>
 #ifdef __linux__
 #include <cerrno>
 #include <unistd.h>
@@ -106,10 +108,10 @@ int EventBase2::AddSocket(SOCKET_FD _fd, EventType _events, bool _persist, Socke
     struct epoll_event ev;
     ev.data.fd = _fd;
     ev.events = EPOLLET;
-    if (_events | Read) {
+    if (_events & Read) {
         ev.events |= EPOLLIN;
     }
-    if (_events | Write) {
+    if (_events & Write) {
         ev.events |= EPOLLOUT;
     }
     if (_persist == false) {
@@ -160,18 +162,17 @@ int EventBase2::AddSignal(int _signal, SignalCallback _callback)
     return 0;
 }
 
-int EventBase2::AddTimer(int& _timerID, uint64_t _period, bool _persist, TimerCallback _callback)
+int EventBase2::AddTimer(uint64_t _period, bool _persist, TimerCallback _callback)
 {
     TimerInfo timer;
     timer.id = m_timerBaseID++;
     timer.period = _period;
     timer.persist = _persist;
-    timer.nextTrigger = time(nullptr) + _period;
+    timer.nextTrigger = DateTime::CurrentTimestampMs() + _period;
     timer.callback = _callback;
     timer.isTrigger = false;
     m_timerList[timer.id] = timer;
-    _timerID = timer.id;
-    return 0;
+    return timer.id;
 }
 
 void EventBase2::OnSocketTriggerCallback(SOCKET_FD _fd, EventBase2::EventType _events)
@@ -240,7 +241,8 @@ void EventBase2::TimerProc()
 {
     for (auto& [timerid, timer] : m_timerList) {
         int id = timer.id;
-        if (timer.nextTrigger <= time(nullptr) && timer.isTrigger == false) {
+        uint64_t curTime = DateTime::CurrentTimestampMs();
+        if (timer.nextTrigger <= curTime && timer.isTrigger == false) {
             m_timerList[id].isTrigger = true;
             m_threadPoolPtr->submit([id, this]() {
                 this->OnTimerCallback(id);

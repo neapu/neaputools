@@ -1,6 +1,7 @@
 #include "NEDateTime.h"
 #include "NEString.h"
 #include "time.h"
+#include <cstdint>
 using namespace neapu;
 
 StringList DateTime::m_weeks = { "Sun","Mon","Tues","Wed","Thur","Fri","Sat" };
@@ -10,6 +11,7 @@ DateTime DateTime::CurrentDatetime()
 {
     DateTime rst;
     rst.m_time = time(nullptr);
+    rst.m_timeMs = CurrentTimestampMs();
     return rst;
 }
 
@@ -67,4 +69,12 @@ String neapu::DateTime::ToHttpDateTime()
     return String("%1, %2 %3 %4 %5:%6:%7 GMT")
         .Argument(m_weeks[_tm->tm_wday]).Argument(_tm->tm_mday).Argument(m_months[_tm->tm_mon]).Argument(_tm->tm_year)
         .Argument(_tm->tm_hour).Argument(_tm->tm_min).Argument(_tm->tm_sec);
+}
+
+uint64_t DateTime::CurrentTimestampMs()
+{
+    std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+    auto tmp=std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+    uint64_t timestamp = tmp.count();
+    return timestamp;
 }

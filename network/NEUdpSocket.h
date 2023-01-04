@@ -4,6 +4,7 @@
 #include "NEByteArray.h"
 #include "NESocketBase.h"
 #include "network/NEIPAddress.h"
+#include <memory>
 #include <utility>
 namespace neapu {
 class UdpSocket : public SocketBase {
@@ -16,5 +17,6 @@ public:
 protected:
     IPAddress m_bindAddr;
 };
+using UdpSocketPtr = std::shared_ptr<UdpSocket>;
 } // namespace neapu
 #endif // __NEUDPSOCKET_H__

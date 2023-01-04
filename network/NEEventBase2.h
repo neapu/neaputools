@@ -41,7 +41,7 @@ public:
 
     int AddSignal(int _signal, SignalCallback _callback = {});
 
-    int AddTimer(int& _timerID, uint64_t _period, bool _persist = false, TimerCallback _callback = {});
+    int AddTimer(uint64_t _period, bool _persist = false, TimerCallback _callback = {});
 
     virtual void OnSocketTriggerCallback(SOCKET_FD _fd, EventBase2::EventType _events);
 

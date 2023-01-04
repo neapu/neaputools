@@ -11,7 +11,7 @@ int SocketManager::AddSocket(SocketBasePtr _sock)
     if (ret < 0) {
         return ret;
     }
-    ret = EventBase2::AddSocket(_sock->GetSocket(), EventBase2::Read);
+    ret = EventBase2::AddSocket(_sock->GetSocket(), EventBase2::Read, true);
     if (ret < 0) {
         return ret;
     }

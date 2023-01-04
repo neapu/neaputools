@@ -54,8 +54,7 @@ int main()
 		LOG_INFO << "Receive Data:" << sock->ReadAll();
 	});
 
-	int timerID = 0;
-	smg.AddTimer(timerID, 1000, true, [&](int id){
+	smg.AddTimer(1000, true, [&](int id){
 		String testData = "test data";
 		cli->Send(testData);
 	});
