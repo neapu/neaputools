@@ -1,10 +1,9 @@
 #pragma once
-#include "base/base_pub.h"
 #include <queue>
 #include <mutex>
 namespace neapu{
     template <typename T>
-    class NEAPU_BASE_EXPORT SafeQueue
+    class SafeQueue
     {
     private:
         std::queue<T> m_queue;

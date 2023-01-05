@@ -1,6 +1,7 @@
 #ifndef __NETCPSERVER2_H__
 #define __NETCPSERVER2_H__
 
+#include "network/network_pub.h"
 #include "NENetworkError.h"
 #include "network/NEEventBase2.h"
 #include "network/NEIPAddress.h"
@@ -8,7 +9,7 @@
 #include <map>
 #include <mutex>
 namespace neapu {
-class TcpServer2 : public EventBase2 {
+class NEAPU_NETWORK_EXPORT TcpServer2 : public EventBase2 {
 public:
     using TcpServerCallback = std::function<void(TcpSocketPtr _socket)>;
     TcpServer2() {}
