@@ -1,13 +1,14 @@
 #ifndef __NETCPCLIENT2_H__
 #define __NETCPCLIENT2_H__
 
+#include "network/network_pub.h"
 #include "NEByteArray.h"
 #include "NENetChannel.h"
 #include "network/NEIPAddress.h"
 #include "network/NETcpSocket.h"
 #include <cstddef>
 namespace neapu {
-class TcpClient2 : public NetChannel {
+class NEAPU_NETWORK_EXPORT TcpClient2 : public NetChannel {
 public:
     TcpClient2()
         : NetChannel(0, IPAddress()) {}

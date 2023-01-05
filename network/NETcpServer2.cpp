@@ -3,6 +3,7 @@
 #include "network/NEEventBase2.h"
 #include "network/NENetworkError.h"
 #include "network/NETcpSocket.h"
+#include <WinSock2.h>
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
@@ -191,7 +192,11 @@ void TcpServer2::OnListenerAccept()
     int ret = SetSocketNonBlock(accp_fd);
     if (ret < 0) {
         LOG_ERROR << "SetSocketNonBlock ERROR:" << ret << " socket:" << accp_fd;
+#ifdef _WIN32
+        closesocket(accp_fd);
+#else
         close(accp_fd);
+#endif
         return;
     }
 

@@ -1,14 +1,22 @@
 #include "NEEventBase2.h"
 #include "NEThreadPoll.h"
 #include "logger/logger.h"
-#include <bits/types/sigset_t.h>
+#include "network/NEEventBase2.h"
+#include "network/network_pub.h"
 #include <csignal>
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <stdint.h>
 #include <thread>
 #include <base/NEDateTime.h>
-#ifdef __linux__
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <Windows.h>
+#include <signal.h>
+#else
+#include <bits/types/sigset_t.h>
 #include <cerrno>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -19,8 +27,29 @@
 #include <sys/signalfd.h>
 constexpr auto MAX_EVENT_COUNT = 2048;
 #endif
-#ifndef USE_LIBEVENT
+
 using namespace neapu;
+
+#ifdef _WIN32
+std::map<int, std::set<EventBase2*>> g_signalInstanceList;
+std::mutex g_instanceMutex;
+void signalHandler(int signal)
+{
+    if (g_signalInstanceList.find(signal) != g_signalInstanceList.end()) {
+        for (auto instance : g_signalInstanceList[signal]) {
+            instance->SignalTrigger(signal);
+        }
+    }
+}
+#endif
+
+EventBase2::EventBase2() noexcept
+{
+}
+
+EventBase2::~EventBase2()
+{
+}
 
 int EventBase2::Init(int _threadCount)
 {
@@ -36,6 +65,8 @@ int EventBase2::Init(int _threadCount)
         LOG_ERROR << "epoll_create1 ERROR:" << errno;
         return -1;
     }
+#elif _WIN32
+
 #endif
     return 0;
 }
@@ -78,6 +109,7 @@ int EventBase2::LoopStart()
             m_running = false;
             close(m_epollFd);
             m_epollFd = 0;
+            m_threadPoolPtr->shutdown();
             return -1;
         }
 
@@ -92,6 +124,56 @@ int EventBase2::LoopStart()
     }
     close(m_epollFd);
     m_epollFd = 0;
+#elif defined(_WIN32)
+    if (m_threadPoolPtr == nullptr) {
+        LOG_ERROR << "Thread Pool no init";
+        return -1;
+    }
+
+    m_running = true;
+    int ret = 0;
+    int fds = 0;
+    int index = 0;
+    while (m_running) {
+        fds = m_socketList.size();
+        pollfd* pfd = new pollfd[fds];
+        index = 0;
+        for (auto& [sock, se] : m_socketList) {
+            pfd[index].fd = se.fd;
+            pfd[index].events = 0;
+            pfd[index].revents = 0;
+            if (se.type & Read) {
+                pfd[index].events |= POLLIN;
+            }
+            if (se.type & Write) {
+                pfd[index].events |= POLLOUT;
+            }
+            if (se.persist == false) {
+                m_socketList.erase(sock);
+            }
+            ++index;
+        }
+#ifdef _WIN32
+        ret = WSAPoll(pfd, fds, 1);
+#endif
+        if (ret < 0) {
+            LOG_ERROR << "poll error:" << ret;
+            m_threadPoolPtr->shutdown();
+            return -1;
+        }
+
+        for (int i = 0; i < fds; i++) {
+            if (pfd[i].revents != 0) {
+                uint32_t ev = pfd[i].revents;
+                SOCKET_FD fd = pfd[i].fd;
+                m_threadPoolPtr->submit(
+                    std::bind(&EventBase2::FdTrigger, this, std::placeholders::_1, std::placeholders::_2),
+                    fd, ev);
+            }
+        }
+        delete[] pfd;
+        TimerProc();
+    }
 #endif
     m_threadPoolPtr->shutdown();
     return 0;
@@ -129,6 +211,13 @@ int EventBase2::AddSocket(SOCKET_FD _fd, EventType _events, bool _persist, Socke
         }
         return -1;
     }
+#elif defined(_WIN32)
+    SocketEvent se;
+    se.fd = _fd;
+    se.type = _events;
+    se.persist = _persist;
+    m_socketList[_fd] = se;
+
 #endif
     return 0;
 }
@@ -158,6 +247,16 @@ int EventBase2::AddSignal(int _signal, SignalCallback _callback)
         m_signalCallbackMap.erase(_signal);
     }
     return ret;
+#elif defined(_WIN32)
+    m_signalList.insert(_signal);
+    std::unique_lock<std::mutex> locker(g_instanceMutex);
+    if (g_signalInstanceList.find(_signal) == g_signalInstanceList.end()) {
+        g_signalInstanceList[_signal].insert(this);
+        signal(_signal, signalHandler);
+    } else {
+        g_signalInstanceList[_signal].insert(this);
+    }
+
 #endif
     return 0;
 }
@@ -201,11 +300,18 @@ int EventBase2::RemoveSocket(SOCKET_FD _fd)
     if (m_socketCallbackMap.contains(_fd)) {
         m_socketCallbackMap.erase(_fd);
     }
+#ifdef __linux__
     int ret = epoll_ctl(m_epollFd, EPOLL_CTL_DEL, _fd, nullptr);
     if (ret < 0) {
         LOG_ERROR << "epoll_ctl ERROR:" << errno;
         return -1;
     }
+#elif _WIN32
+    if (m_socketList.find(_fd) != m_socketList.end()) {
+        m_socketList.erase(_fd);
+    }
+#endif
+
     return 0;
 }
 
@@ -220,6 +326,7 @@ int EventBase2::RemoveTimer(int _timerID)
 // 此函数运行在工作线程里
 void EventBase2::FdTrigger(SOCKET_FD _fd, uint32_t events)
 {
+#ifdef __linux__
     if (m_signalFds.contains(_fd)) {
         m_signalFds.erase(_fd);
         struct signalfd_siginfo fdsiI;
@@ -235,6 +342,16 @@ void EventBase2::FdTrigger(SOCKET_FD _fd, uint32_t events)
         }
         this->OnSocketTriggerCallback(_fd, (EventType)type);
     }
+#elif _WIN32
+    short type = None;
+    if (events & POLLIN) {
+        type |= Read;
+    }
+    if (events & POLLOUT) {
+        type |= Write;
+    }
+    this->OnSocketTriggerCallback(_fd, (EventType)type);
+#endif
 }
 
 void EventBase2::TimerProc()
@@ -258,4 +375,12 @@ void EventBase2::TimerProc()
     }
 }
 
+#ifdef _WIN32
+void EventBase2::SignalTrigger(int _signal)
+{
+    if (m_threadPoolPtr == nullptr) return;
+    m_threadPoolPtr->submit([this, _signal]() {
+        this->OnSignalCallback(_signal);
+    });
+}
 #endif

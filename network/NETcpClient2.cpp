@@ -2,7 +2,6 @@
 #include "NEByteArray.h"
 #include "network/NENetworkError.h"
 #include "network/NETcpSocket.h"
-#include <sys/socket.h>
 
 using namespace neapu;
 

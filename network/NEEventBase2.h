@@ -2,7 +2,6 @@
 #define __NEEVENTBASE2_H__
 
 #include "network/network_pub.h"
-#include <cstdint>
 #include <functional>
 #include <base/NEThreadPoll.h>
 #include <memory>
@@ -10,14 +9,14 @@
 #include <set>
 #include <thread>
 
-
+void signalHandler(int signal);
 namespace neapu {
 class NEAPU_NETWORK_EXPORT EventBase2 {
 public:
-    EventBase2() noexcept {}
+    EventBase2() noexcept;
     EventBase2(const EventBase2&) = delete;
     EventBase2(EventBase2&& _eb) noexcept;
-    virtual ~EventBase2() {}
+    virtual ~EventBase2();
 
     enum EventType : short {
         None = 0,
@@ -55,6 +54,10 @@ public:
 private:
     void FdTrigger(SOCKET_FD _fd, uint32_t events);
     void TimerProc();
+#ifdef _WIN32
+    void SignalTrigger(int _signal);
+    friend void ::signalHandler(int signal);
+#endif
 
 private:
     struct TimerInfo{
@@ -78,6 +81,14 @@ private:
 #ifdef __linux__
     int m_epollFd = 0;
     std::set<int> m_signalFds;
+#elif defined (_WIN32)
+    struct SocketEvent{
+        SOCKET_FD fd;
+        EventType type;
+        bool persist;
+    };
+    std::map<SOCKET_FD, SocketEvent> m_socketList;
+    std::set<int> m_signalList;
 #endif
 };
 } // namespace neapu

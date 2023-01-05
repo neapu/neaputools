@@ -4,8 +4,13 @@
  * 封装从字符串转换
  **************************************************************************************/
 #pragma once
+#ifdef _WIN32
+#include <WS2tcpip.h>
+#include <WinSock2.h>
+#else
 #include <sys/socket.h>
 #include <unistd.h>
+#endif
 #include <utility>
 #include <base/NEString.h>
 #include "network/network_pub.h"

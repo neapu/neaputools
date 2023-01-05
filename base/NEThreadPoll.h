@@ -8,7 +8,7 @@
 
 namespace neapu {
 template <class T>
-class ThreadPoll {
+class NEAPU_BASE_EXPORT ThreadPoll {
 public:
     void Init(int _threadNum, T _proc)
     {
@@ -29,7 +29,7 @@ private:
     std::vector<std::thread> m_threads;
 };
 
-class ThreadPool2 {
+class NEAPU_BASE_EXPORT ThreadPool2 {
 private:
     class ThreadWorker // 内置线程工作类
     {

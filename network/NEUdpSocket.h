@@ -1,13 +1,14 @@
 #ifndef __NEUDPSOCKET_H__
 #define __NEUDPSOCKET_H__
 
+#include "network/network_pub.h"
 #include "NEByteArray.h"
 #include "NESocketBase.h"
 #include "network/NEIPAddress.h"
 #include <memory>
 #include <utility>
 namespace neapu {
-class UdpSocket : public SocketBase {
+class NEAPU_NETWORK_EXPORT UdpSocket : public SocketBase {
 public:
     int Init(const IPAddress& _bindAddr);
     int SendTo(const ByteArray& _data, const IPAddress& _addr);

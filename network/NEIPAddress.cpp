@@ -1,5 +1,10 @@
 #include "NEIPAddress.h"
+#ifdef _WIN32
+#include <ws2def.h>
+#include <ws2ipdef.h>
+#else
 #include <arpa/inet.h>
+#endif
 #ifdef USE_LIBEVENT
 #include <event2/util.h>
 #endif
@@ -43,7 +48,7 @@ IPAddress neapu::IPAddress::MakeAddress(Type _type, String _strIPAddress, int _p
             rc = inet_pton(AF_INET6, _strIPAddress.ToCString(), addr.v6);
         }
         if (1 != rc) {
-            Logger(LM_ERROR) << "evutil_inet_pton error:" << rc;
+            Logger(LM_ERROR) << "inet_pton error:" << rc;
         }
     }
     addr.port = _port;
@@ -52,11 +57,11 @@ IPAddress neapu::IPAddress::MakeAddress(Type _type, String _strIPAddress, int _p
 
 IPAddress IPAddress::MakeAddress(const sockaddr_storage& sin)
 {
-	if(sin.ss_family == AF_INET){
-		return MakeAddress((const sockaddr_in&)sin);
-	} else if(sin.ss_family == AF_INET6) {
-		return MakeAddress((const sockaddr_in6&)sin);
-	}
+    if (sin.ss_family == AF_INET) {
+        return MakeAddress((const sockaddr_in&)sin);
+    } else if (sin.ss_family == AF_INET6) {
+        return MakeAddress((const sockaddr_in6&)sin);
+    }
     return IPAddress();
 }
 
@@ -101,11 +106,11 @@ bool neapu::IPAddress::IsEmptyAddr() const
 
 socklen_t neapu::IPAddress::SockaddrLen() const
 {
-	if(IsIPv4()){
-		return sizeof(struct sockaddr_in);
-	}else{
-		return sizeof(struct sockaddr_in6);
-	}
+    if (IsIPv4()) {
+        return sizeof(sockaddr_in);
+    } else {
+        return sizeof(sockaddr_in6);
+    }
 }
 
 NEAPU_NETWORK_EXPORT Logger& operator<<(Logger& _logger, const IPAddress& _addr)

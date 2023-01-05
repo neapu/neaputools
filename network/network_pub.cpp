@@ -1,20 +1,29 @@
 #include "network/network_pub.h"
 #include "base/NELogger.h"
-#ifdef WIN32
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <Windows.h>
 #else
 #include <fcntl.h>
 #endif
 
 int neapu::GetSocketError(SOCKET_FD sock)
 {
-#ifdef __linux__
+#ifdef _WIN32
+    return WSAGetLastError();
+#else
     return errno;
 #endif
 }
 
 const char* neapu::GetErrorString(int err)
 {
-#ifdef __linux__
+#ifdef _WIN32
+    HLOCAL LocalAddress=NULL;  
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_IGNORE_INSERTS|FORMAT_MESSAGE_FROM_SYSTEM,  
+         NULL,(DWORD)err,0,(PTSTR)&LocalAddress,0,NULL);  
+    return (LPSTR)LocalAddress; 
+#else
     return strerror(err);
 #endif
 }
@@ -25,7 +34,7 @@ int neapu::SetSocketNonBlock(SOCKET_FD fd)
     {
         unsigned long nonblocking = 1;
         if (ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR) {
-            event_sock_warn(fd, "ioctlsocket(%d, FIONBIO, &%lu)", (int)fd, (unsigned long)nonblocking);
+            LOG_INFO << "ioctlsocket ERROR";
             return -1;
         }
     }

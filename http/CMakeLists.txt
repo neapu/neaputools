@@ -1,6 +1,6 @@
 set(EXE_NAME NeapuHttp)
 include_directories("../base" "../network")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if (WIN32)
 	add_compile_definitions(NEAPU_HTTP_EXPORTS)
 endif()
 file(GLOB HEAD_FILES "./*.h")

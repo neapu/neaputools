@@ -27,7 +27,5 @@ public:
 private:
     unsigned long long m_time = 0;
     uint64_t m_timeMs = 0;
-    static StringList m_weeks;
-    static StringList m_months;
 };
 } // namespace neapu

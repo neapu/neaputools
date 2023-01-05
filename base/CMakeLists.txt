@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 set(EXPORT_NAME NeapuBase)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if (WIN32)
 	add_compile_definitions(NEAPU_BASE_EXPORTS)
 endif()
 file(GLOB HEAD_FILES "./*.h")

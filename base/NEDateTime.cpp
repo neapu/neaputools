@@ -4,8 +4,8 @@
 #include <cstdint>
 using namespace neapu;
 
-StringList DateTime::m_weeks = { "Sun","Mon","Tues","Wed","Thur","Fri","Sat" };
-StringList DateTime::m_months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" };
+StringList m_weeks = { "Sun","Mon","Tues","Wed","Thur","Fri","Sat" };
+StringList m_months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" };
 
 DateTime DateTime::CurrentDatetime()
 {

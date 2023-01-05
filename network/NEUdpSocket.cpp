@@ -5,10 +5,11 @@
 #include "network/NEIPAddress.h"
 #include "network/NENetworkError.h"
 #include <cstddef>
+#ifdef WIN32
+#include <WinSock2.h>
+#else
 #include <netinet/in.h>
 #include <unistd.h>
-#ifdef WIN32
-#else
 #include <sys/socket.h>
 #endif
 
@@ -34,7 +35,11 @@ int UdpSocket::Init(const IPAddress& bindAddr)
         bindAddr.ToSockaddr(&sin);
         ret = bind(fd, (sockaddr*)&sin, bindAddr.SockaddrLen());
         if (ret < 0) {
+#ifdef _WIN32
+            closesocket(fd);
+#else
             close(fd);
+#endif
             return ERROR_BIND;
         }
     }
