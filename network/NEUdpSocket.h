@@ -2,8 +2,8 @@
 #define __NEUDPSOCKET_H__
 
 #include "network/network_pub.h"
-#include "NEByteArray.h"
-#include "NESocketBase.h"
+#include "base/NEByteArray.h"
+#include "network/NESocketBase.h"
 #include "network/NEIPAddress.h"
 #include <memory>
 #include <utility>

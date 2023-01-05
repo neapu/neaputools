@@ -1,7 +1,7 @@
 #ifndef __NESOCKET_H__
 #define __NESOCKET_H__
 
-#include "NEEventBase2.h"
+#include "network/NEEventBase2.h"
 #include "network/network_pub.h"
 #include <memory>
 

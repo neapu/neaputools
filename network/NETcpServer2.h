@@ -2,7 +2,7 @@
 #define __NETCPSERVER2_H__
 
 #include "network/network_pub.h"
-#include "NENetworkError.h"
+#include "network/NENetworkError.h"
 #include "network/NEEventBase2.h"
 #include "network/NEIPAddress.h"
 #include "network/NETcpSocket.h"

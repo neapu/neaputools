@@ -2,8 +2,8 @@
 #define __NETCPCLIENT2_H__
 
 #include "network/network_pub.h"
-#include "NEByteArray.h"
-#include "NENetChannel.h"
+#include "base/NEByteArray.h"
+#include "network/NENetChannel.h"
 #include "network/NEIPAddress.h"
 #include "network/NETcpSocket.h"
 #include <cstddef>
