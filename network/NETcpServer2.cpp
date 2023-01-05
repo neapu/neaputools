@@ -3,12 +3,13 @@
 #include "network/NEEventBase2.h"
 #include "network/NENetworkError.h"
 #include "network/NETcpSocket.h"
-#include <WinSock2.h>
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
 #include <mutex>
-#ifdef __linux__
+#ifdef _WIN32
+#include <WinSock2.h>
+#else
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
