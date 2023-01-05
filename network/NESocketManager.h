@@ -1,13 +1,14 @@
 #ifndef __NESOCKETMANAGER_H__
 #define __NESOCKETMANAGER_H__
 
+#include "network/network_pub.h"
 #include "network/NEEventBase2.h"
 #include "network/NESocketBase.h"
 #include <functional>
 #include <map>
 #include <mutex>
 namespace neapu {
-class SocketManager : public EventBase2 {
+class NEAPU_NETWORK_EXPORT SocketManager : public EventBase2 {
 public:
     using SocketCallback = std::function<void(SocketBasePtr)>;
 
