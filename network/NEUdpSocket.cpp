@@ -5,6 +5,7 @@
 #include "network/NEIPAddress.h"
 #include "network/NENetworkError.h"
 #include <cstddef>
+#include <memory>
 #ifdef WIN32
 #include <WinSock2.h>
 #else
@@ -14,6 +15,11 @@
 #endif
 
 using namespace neapu;
+
+std::shared_ptr<UdpSocket> UdpSocket::MakeUdpSocket()
+{
+    return std::make_shared<UdpSocket>();
+}
 
 int UdpSocket::Init(const IPAddress& bindAddr)
 {

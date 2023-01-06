@@ -10,6 +10,7 @@
 namespace neapu {
 class NEAPU_NETWORK_EXPORT UdpSocket : public SocketBase {
 public:
+    static std::shared_ptr<UdpSocket> MakeUdpSocket();
     int Init(const IPAddress& _bindAddr);
     int SendTo(const ByteArray& _data, const IPAddress& _addr);
     std::pair<ByteArray, IPAddress> RecvFrom(size_t _len, int _timeout = 3000);
