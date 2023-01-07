@@ -1,11 +1,10 @@
 
-#include "NESocketBase.h"
-#include "NESocketManager.h"
-#include "NEString.h"
+#include "network/NESocketBase.h"
+#include "network/NESocketManager.h"
+#include "base/NEString.h"
 #include "logger/logger.h"
 #include <iostream>
-#include <NELogger.h>
-#include <NEUtil.h>
+#include <base/NEUtil.h>
 #include <memory>
 #include <neapu-config.h>
 #include <signal.h>
@@ -18,7 +17,7 @@ int main()
 {
     Settings set;
     IPAddress::Type type = IPAddress::Type::IPv4;
-    String address = "127.0.0.1";
+    String address = "192.168.2.52";
     int port = 9884;
     if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/client.conf") == 0) {
         if (set.GetValue("type", "IPv4") == "IPv6") {

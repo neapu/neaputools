@@ -1,8 +1,8 @@
-#include "NEString.h"
-#include "NELogger.h"
-#include "NEUtil.h"
-#include "NETcpServer2.h"
-#include "NEByteArray.h"
+#include "base/NEString.h"
+#include "base/NELogger.h"
+#include "base/NEUtil.h"
+#include "network/NETcpServer2.h"
+#include "base/NEByteArray.h"
 #include <neapu-config.h>
 #include <signal.h>
 #include <base/NESettings.h>
