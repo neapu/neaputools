@@ -10,18 +10,10 @@
 using namespace neapu;
 int main(int argc, char** argv)
 {
-    Settings set;
     IPAddress::Type type = IPAddress::Type::IPv4;
     String address = "0.0.0.0";
     int port = 9884;
-    if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/server.conf") == 0) {
-        if (set.GetValue("type", "IPv4") == "IPv6") {
-            type = IPAddress::Type::IPv6;
-        }
 
-        address = set.GetValue("address", "0.0.0.0");
-        port = (int)set.GetValue("port", "9884").ToInt();
-    }
     TcpServer2 tcpServer;
 
     int rc = tcpServer.Init(IPAddress::MakeAddress(type, address, port));
@@ -47,7 +39,7 @@ int main(int argc, char** argv)
         });
     
     tcpServer.OnError([&](std::shared_ptr<NetChannel> _netChannel) {
-        Logger(LM_ERROR) << "Channel Error [" << *_netChannel << "]:" << _netChannel->GetError();
+        Logger(LM_ERROR) << "Channel Error [" << *_netChannel << "]:" << _netChannel->GetLastError();
     });
 
     tcpServer.AddSignal(SIGINT, [&](int _signal) {

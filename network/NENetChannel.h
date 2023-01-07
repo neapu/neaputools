@@ -33,18 +33,13 @@ public:
     {
         return m_address;
     }
-    NetworkError GetError() const
-    {
-        return m_err;
-    }
-    void SetError(const NetworkError& _err)
-    {
-        m_err = _err;
-    }
+
     NetChannel(SOCKET_FD _fd, const IPAddress& _addr)
         : SocketBase(_fd)
         , m_address(_addr)
     {}
+
+    using SocketBase::SetLastError;
     void SetLastError(int _err, String _str)
     {
         m_err.code = _err;
@@ -56,7 +51,6 @@ protected:
     std::mutex m_writeLock;
     std::shared_ptr<void*> m_userData;
     IPAddress m_address;
-    NetworkError m_err;
 };
 
 } // namespace neapu

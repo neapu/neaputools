@@ -218,7 +218,7 @@ void TcpServer2::OnClientReadReady(SOCKET_FD _fd)
         std::unique_lock<std::recursive_mutex> errorLocker(m_errorMutex);
         SetLastError();
         if (m_err.code != 0 && m_err.code != RECV_EOF_EN) {
-            client->SetError(m_err);
+            client->SetLastError(m_err);
             errorLocker.unlock();
             OnError(client);
             ReleaseClient(_fd);

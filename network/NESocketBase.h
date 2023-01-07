@@ -15,6 +15,7 @@ public:
     SOCKET_FD GetSocket() { return m_fd; }
     void SetNonBlock(bool _nonblock) { m_nonBlock = _nonblock; }
     void SetLastError() { m_err.SetLastError(); }
+    void SetLastError(NetworkError _err) { m_err = _err; }
     NetworkError GetLastError() { return m_err; }
 
 protected:

@@ -15,33 +15,24 @@ using namespace std;
 
 int main()
 {
-    Settings set;
     IPAddress::Type type = IPAddress::Type::IPv4;
     String address = "192.168.2.52";
     int port = 9884;
-    if (set.Init(String(NETOOLS_SOURCE_DIR) + "/demo/configs/client.conf") == 0) {
-        if (set.GetValue("type", "IPv4") == "IPv6") {
-            type = IPAddress::Type::IPv6;
-        }
-
-        address = set.GetValue("address", "127.0.0.1");
-        port = (int)set.GetValue("port", "9884").ToInt();
-    }
-    int rc = 0;
+    int ret = 0;
 
     std::shared_ptr<TcpClient2> cli = std::make_shared<TcpClient2>();
     auto addr = IPAddress::MakeAddress(type, address, port);
     Logger(LM_INFO) << "Connect to:" << addr;
-    rc = cli->Connect(addr);
+    ret = cli->Connect(addr);
 
-    if (rc) {
-        Logger(LM_ERROR) << "Connect failed:" << rc << cli->GetError();
-        return rc;
+    if (ret) {
+        Logger(LM_ERROR) << "Connect failed:" << ret << cli->GetLastError();
+        return ret;
     }
     Logger(LM_INFO) << "Connected:" << cli->GetAddress();
 
     SocketManager smg;
-    int ret = smg.Init();
+    ret = smg.Init();
     if (ret < 0) {
         LOG_ERROR << "SocketManager Init error:" << ret;
     }
