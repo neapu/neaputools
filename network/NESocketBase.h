@@ -2,6 +2,7 @@
 #define __NESOCKET_H__
 
 #include "network/NEEventBase2.h"
+#include "network/NENetworkError.h"
 #include "network/network_pub.h"
 #include <memory>
 
@@ -13,11 +14,14 @@ public:
     void SetSocket(SOCKET_FD _fd) { m_fd = _fd; }
     SOCKET_FD GetSocket() { return m_fd; }
     void SetNonBlock(bool _nonblock) { m_nonBlock = _nonblock; }
+    void SetLastError() { m_err.SetLastError(); }
+    NetworkError GetLastError() { return m_err; }
 
 protected:
     SOCKET_FD m_fd = 0;
     bool m_ipv6 = false;
     bool m_nonBlock = false;
+    NetworkError m_err;
 };
 using SocketBasePtr = std::shared_ptr<SocketBase>;
 } // namespace neapu

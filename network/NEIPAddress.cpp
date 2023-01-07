@@ -69,11 +69,13 @@ void neapu::IPAddress::ToSockaddr(void* _sin) const
 {
     if (this->IsIPv4()) {
         auto sin = static_cast<sockaddr_in*>(_sin);
+        memset(sin, 0, sizeof(sockaddr_in));
         sin->sin_family = AF_INET;
         memcpy(&sin->sin_addr.s_addr, &v4, sizeof(v4));
         sin->sin_port = htons(port);
     } else if (this->IsIPv6()) {
         auto sin = static_cast<sockaddr_in6*>(_sin);
+        memset(sin, 0, sizeof(sockaddr_in6));
         sin->sin6_family = AF_INET6;
         sin->sin6_port = htons(port);
         memcpy(&sin->sin6_addr, v6, sizeof(v6));

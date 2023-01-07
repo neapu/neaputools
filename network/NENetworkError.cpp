@@ -1,5 +1,13 @@
 #include "NENetworkError.h"
+#include "network/NENetworkError.h"
+#include "network/network_pub.h"
 using namespace neapu;
+
+void NetworkError::SetLastError()
+{
+    this->code = GetSocketError(0);
+    this->str = GetErrorString(code);
+}
 
 Logger& operator<<(Logger& _logger, const NetworkError& _err)
 {

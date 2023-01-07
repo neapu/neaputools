@@ -23,6 +23,14 @@ std::shared_ptr<UdpSocket> UdpSocket::MakeUdpSocket()
 
 int UdpSocket::Init(const IPAddress& bindAddr)
 {
+#ifdef _WIN32
+    WSAData wsaData;
+    if (WSAStartup(0x0202, &wsaData) != 0) {
+        SetLastError();
+        LOG_DEADLY << "WSAStartup Error:" << m_err;
+        return -1;
+    }
+#endif
     SOCKET_FD fd = -1;
     int ret = 0;
     if (bindAddr.IsIPv4()) {
@@ -32,6 +40,7 @@ int UdpSocket::Init(const IPAddress& bindAddr)
         m_ipv6 = true;
     }
     if (fd <= 0) {
+        SetLastError();
         return ERROR_SOCKET_OPEN;
     }
 
@@ -41,6 +50,7 @@ int UdpSocket::Init(const IPAddress& bindAddr)
         bindAddr.ToSockaddr(&sin);
         ret = bind(fd, (sockaddr*)&sin, bindAddr.SockaddrLen());
         if (ret < 0) {
+            SetLastError();
 #ifdef _WIN32
             closesocket(fd);
 #else
@@ -63,6 +73,9 @@ int UdpSocket::SendTo(const ByteArray& _data, const IPAddress& _addr)
 #else
     int ret = ::sendto(m_fd, _data.Data(), _data.Length(), 0, (sockaddr*)&sin, _addr.SockaddrLen());
 #endif
+    if (ret < 0) {
+        SetLastError();
+    }
     return ret;
 }
 
@@ -93,8 +106,12 @@ std::pair<ByteArray, IPAddress> UdpSocket::RecvFrom(size_t _len, int _timeout)
         sockLen = sizeof(sockaddr_in);
     }
     char* buf = new char[_len];
-    size_t ret = ::recvfrom(m_fd, buf, _len, 0, (struct sockaddr*)&sin, &sockLen);
-    rst.Append((unsigned char*)buf, ret);
-    addr = IPAddress::MakeAddress(sin);
+    int ret = ::recvfrom(m_fd, buf, _len, 0, (struct sockaddr*)&sin, &sockLen);
+    if (ret < 0) {
+        SetLastError();
+    } else {
+        rst.Append((unsigned char*)buf, ret);
+        addr = IPAddress::MakeAddress(sin);
+    }
     return {rst, addr};
 }

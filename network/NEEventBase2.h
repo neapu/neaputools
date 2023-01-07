@@ -2,16 +2,26 @@
 #define __NEEVENTBASE2_H__
 
 #include "network/network_pub.h"
+#include <WinSock2.h>
 #include <functional>
 #include <base/NEThreadPoll.h>
 #include <memory>
 #include <map>
+#include <mutex>
 #include <set>
 #include <thread>
 
 void signalHandler(int signal);
 namespace neapu {
 class NEAPU_NETWORK_EXPORT EventBase2 {
+private:
+#ifdef _WIN32
+    struct SocketEvent {
+        pollfd pfd;
+        bool persist;
+        bool trigger;
+    };
+#endif
 public:
     EventBase2() noexcept;
     EventBase2(const EventBase2&) = delete;
@@ -51,6 +61,7 @@ public:
     int RemoveSocket(SOCKET_FD _fd);
 
     int RemoveTimer(int _timerID);
+
 private:
     void FdTrigger(SOCKET_FD _fd, uint32_t events);
     void TimerProc();
@@ -60,7 +71,7 @@ private:
 #endif
 
 private:
-    struct TimerInfo{
+    struct TimerInfo {
         int id;
         bool isTrigger;
         bool persist;
@@ -81,14 +92,10 @@ private:
 #ifdef __linux__
     int m_epollFd = 0;
     std::set<int> m_signalFds;
-#elif defined (_WIN32)
-    struct SocketEvent{
-        SOCKET_FD fd;
-        EventType type;
-        bool persist;
-    };
+#elif defined(_WIN32)
+
     std::map<SOCKET_FD, SocketEvent> m_socketList;
-    std::set<int> m_signalList;
+    std::recursive_mutex m_socketListMutex;
 #endif
 };
 } // namespace neapu

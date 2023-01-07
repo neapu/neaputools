@@ -20,9 +20,12 @@
 #define ERROR_ADD_SOCKET -15
 
 namespace neapu {
-using NetworkError = struct tagNetworkError {
+class NEAPU_NETWORK_EXPORT NetworkError {
+public:
     int code = 0;
     String str;
+
+    void SetLastError();
 };
 
 } // namespace neapu

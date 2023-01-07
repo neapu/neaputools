@@ -135,26 +135,26 @@ int EventBase2::LoopStart()
     int fds = 0;
     int index = 0;
     while (m_running) {
-        fds = m_socketList.size();
-        pollfd* pfd = new pollfd[fds];
-        index = 0;
-        for (auto& [sock, se] : m_socketList) {
-            pfd[index].fd = se.fd;
-            pfd[index].events = 0;
-            pfd[index].revents = 0;
-            if (se.type & Read) {
-                pfd[index].events |= POLLIN;
+        pollfd* pfds = nullptr;
+        {
+            std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
+            fds = m_socketList.size();
+            pfds = new pollfd[fds];
+            index = 0;
+            for (auto& [sock, se] : m_socketList) {
+                if (se.trigger == true) continue;
+                pfds[index] = se.pfd;
+                pfds[index].revents = 0;
+                ++index;
             }
-            if (se.type & Write) {
-                pfd[index].events |= POLLOUT;
-            }
-            if (se.persist == false) {
-                m_socketList.erase(sock);
-            }
-            ++index;
         }
+
+        if(index <= 0){
+            continue;
+        }
+
 #ifdef _WIN32
-        ret = WSAPoll(pfd, fds, 1);
+        ret = WSAPoll(pfds, index, 1);
 #endif
         if (ret < 0) {
             LOG_ERROR << "poll error:" << ret;
@@ -163,15 +163,22 @@ int EventBase2::LoopStart()
         }
 
         for (int i = 0; i < fds; i++) {
-            if (pfd[i].revents != 0) {
-                uint32_t ev = pfd[i].revents;
-                SOCKET_FD fd = pfd[i].fd;
+            if (pfds[i].revents != 0) {
+                uint32_t ev = pfds[i].revents;
+                SOCKET_FD fd = pfds[i].fd;
+#ifdef _WIN32
+                std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
+                if (m_socketList.find(fd) != m_socketList.end()) {
+                    auto& se = m_socketList[fd];
+                    se.trigger = true;
+                }
+#endif
                 m_threadPoolPtr->submit(
                     std::bind(&EventBase2::FdTrigger, this, std::placeholders::_1, std::placeholders::_2),
                     fd, ev);
             }
         }
-        delete[] pfd;
+        delete[] pfds;
         TimerProc();
     }
 #endif
@@ -213,9 +220,18 @@ int EventBase2::AddSocket(SOCKET_FD _fd, EventType _events, bool _persist, Socke
     }
 #elif defined(_WIN32)
     SocketEvent se;
-    se.fd = _fd;
-    se.type = _events;
+    se.pfd.fd = _fd;
+    se.pfd.events = 0;
+    se.pfd.revents = 0;
+    if (_events & Read) {
+        se.pfd.events |= POLLIN;
+    }
+    if (_events & Write) {
+        se.pfd.events |= POLLOUT;
+    }
     se.persist = _persist;
+    se.trigger = false;
+    std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
     m_socketList[_fd] = se;
 
 #endif
@@ -248,7 +264,9 @@ int EventBase2::AddSignal(int _signal, SignalCallback _callback)
     }
     return ret;
 #elif defined(_WIN32)
-    m_signalList.insert(_signal);
+    if (_callback) {
+        m_signalCallbackMap[_signal] = _callback;
+    }
     std::unique_lock<std::mutex> locker(g_instanceMutex);
     if (g_signalInstanceList.find(_signal) == g_signalInstanceList.end()) {
         g_signalInstanceList[_signal].insert(this);
@@ -307,6 +325,7 @@ int EventBase2::RemoveSocket(SOCKET_FD _fd)
         return -1;
     }
 #elif _WIN32
+    std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
     if (m_socketList.find(_fd) != m_socketList.end()) {
         m_socketList.erase(_fd);
     }
@@ -326,7 +345,26 @@ int EventBase2::RemoveTimer(int _timerID)
 // 此函数运行在工作线程里
 void EventBase2::FdTrigger(SOCKET_FD _fd, uint32_t events)
 {
-#ifdef __linux__
+#ifdef _WIN32
+    short type = None;
+    if (events & POLLIN) {
+        type |= Read;
+    }
+    if (events & POLLOUT) {
+        type |= Write;
+    }
+    this->OnSocketTriggerCallback(_fd, (EventType)type);
+    std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
+    if (m_socketList.find(_fd) != m_socketList.end()) {
+        auto& se = m_socketList[_fd];
+        if (se.persist == false) {
+            m_socketList.erase(_fd);
+        } else {
+            se.trigger = false;
+        }
+    }
+
+#else
     if (m_signalFds.contains(_fd)) {
         m_signalFds.erase(_fd);
         struct signalfd_siginfo fdsiI;
@@ -342,17 +380,9 @@ void EventBase2::FdTrigger(SOCKET_FD _fd, uint32_t events)
         }
         this->OnSocketTriggerCallback(_fd, (EventType)type);
     }
-#elif _WIN32
-    short type = None;
-    if (events & POLLIN) {
-        type |= Read;
-    }
-    if (events & POLLOUT) {
-        type |= Write;
-    }
-    this->OnSocketTriggerCallback(_fd, (EventType)type);
 #endif
 }
+// #endif
 
 void EventBase2::TimerProc()
 {
