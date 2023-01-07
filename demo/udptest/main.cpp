@@ -7,8 +7,6 @@
 #include "iostream"
 #include "logger/logger.h"
 #include "network/network_pub.h"
-#include <WS2tcpip.h>
-#include <WinSock2.h>
 #include <network/NEUdpSocket.h>
 #include <logger/logger.h>
 #include <base/NEUtil.h>

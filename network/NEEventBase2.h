@@ -2,7 +2,6 @@
 #define __NEEVENTBASE2_H__
 
 #include "network/network_pub.h"
-#include <WinSock2.h>
 #include <functional>
 #include <base/NEThreadPoll.h>
 #include <memory>
@@ -10,6 +9,9 @@
 #include <mutex>
 #include <set>
 #include <thread>
+#ifdef _WIN32
+#include <WinSock2.h>
+#endif
 
 void signalHandler(int signal);
 namespace neapu {
