@@ -109,6 +109,8 @@ public:
     {
         return IndexOf(std::forward<Args>(args)...);
     }
+
+    // 闭区间，包前包后
     String Middle(size_t _begin, size_t _end) const;
     String Left(size_t _len) const;
     String Right(size_t _len) const;

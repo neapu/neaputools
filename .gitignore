@@ -7,3 +7,4 @@ demo/configs/
 demo/udptest/run_client.bat
 neapu-config.h
 win_build/
+build_msvc/

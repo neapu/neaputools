@@ -132,14 +132,15 @@ int EventBase2::LoopStart()
 
     m_running = true;
     int ret = 0;
-    int fds = 0;
+    int fdCount = 0;
     int index = 0;
     while (m_running) {
         pollfd* pfds = nullptr;
         {
             std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);
-            fds = m_socketList.size();
-            pfds = new pollfd[fds];
+            fdCount = m_socketList.size();
+            if (fdCount <= 0)continue;
+            pfds = new pollfd[fdCount];
             index = 0;
             for (auto& [sock, se] : m_socketList) {
                 if (se.trigger == true) continue;
@@ -150,6 +151,7 @@ int EventBase2::LoopStart()
         }
 
         if(index <= 0){
+            delete[] pfds;
             continue;
         }
 
@@ -162,7 +164,7 @@ int EventBase2::LoopStart()
             return -1;
         }
 
-        for (int i = 0; i < fds; i++) {
+        for (int i = 0; i < index; i++) {
             if (pfds[i].revents != 0) {
                 uint32_t ev = pfds[i].revents;
                 SOCKET_FD fd = pfds[i].fd;
@@ -352,6 +354,9 @@ void EventBase2::FdTrigger(SOCKET_FD _fd, uint32_t events)
     }
     if (events & POLLOUT) {
         type |= Write;
+    }
+    if (events & POLLERR) {
+        type |= Error;
     }
     this->OnSocketTriggerCallback(_fd, (EventType)type);
     std::unique_lock<std::recursive_mutex> locker(m_socketListMutex);

@@ -27,13 +27,14 @@ private:
 public:
     EventBase2() noexcept;
     EventBase2(const EventBase2&) = delete;
-    EventBase2(EventBase2&& _eb) noexcept;
+    EventBase2(EventBase2&& _eb) = delete;
     virtual ~EventBase2();
 
     enum EventType : short {
         None = 0,
         Read = 0x02,
-        Write = 0x04
+        Write = 0x04,
+        Error = 0x08 // Windows下poll在断开时会触发error而不会触发read(POLLIN)
     };
 
     using SocketCallback = std::function<void(SOCKET_FD _fd, EventBase2::EventType)>;

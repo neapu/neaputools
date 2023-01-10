@@ -47,6 +47,16 @@ public:
     static IPAddress MakeAddress(const sockaddr_in6& sin);
     static IPAddress MakeAddress(const sockaddr_storage& sin);
     static IPAddress MakeAddress(Type _type, String _strIPAddress, int _port);
+
+    /*
+    *  使用IP:Port格式
+    *  例如:
+    *  IPv4: 127.0.0.1:8888
+    *  IPv6: [::1]:8888
+    */
+    static IPAddress MakeAddress(String _strAddr);
+
+    
     void ToSockaddr(void* sin) const;
     String ToString() const;
     int Port() const

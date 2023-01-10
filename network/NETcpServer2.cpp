@@ -27,6 +27,14 @@ using namespace neapu;
 
 int TcpServer2::Init(const IPAddress& _addr, int _threadNum)
 {
+#ifdef _WIN32
+    WSAData wsaData;
+    if (WSAStartup(0x0202, &wsaData) != 0) {
+        SetLastError();
+        LOG_DEADLY << "WSAStartup Error:" << m_err;
+        return -1;
+    }
+#endif
     m_address = _addr;
     int rc = EventBase2::Init(_threadNum);
     if (rc < 0) {
@@ -46,12 +54,14 @@ int TcpServer2::Init(const IPAddress& _addr, int _threadNum)
     // 设置非阻塞
     rc = SetSocketNonBlock(m_listenFd);
     if (0 != rc) {
+        SetLastError();
         return ERROR_SOCKET_NONBLOCK;
     }
 
     // 设置重入
     rc = SetSocketReuseable(m_listenFd);
     if (0 != rc) {
+        SetLastError();
         return ERROR_SET_REUSEADDR;
     }
 
@@ -78,6 +88,7 @@ int TcpServer2::Init(const IPAddress& _addr, int _threadNum)
         EventBase2::Release();
         return rc;
     }
+    LOG_DEBUG << "Listen fd:" << m_listenFd;
     return 0;
 }
 
@@ -166,6 +177,26 @@ void TcpServer2::OnSocketTriggerCallback(SOCKET_FD _fd, EventBase2::EventType _e
             OnClientReadReady(_fd);
         }
     }
+    if (_events & EventBase2::Error) {
+        auto client = GetClient(_fd);
+        if (client == nullptr) {
+            ReleaseClient(_fd);
+            return;
+        }
+        std::unique_lock<std::recursive_mutex> errorLocker(m_errorMutex);
+        SetLastError();
+        if (m_err.code == RECV_EOF_EN || m_err.code == 0) {
+            errorLocker.unlock();
+            OnClose(client);
+            ReleaseClient(_fd);
+        }
+        else {
+            client->SetLastError(m_err);
+            errorLocker.unlock();
+            OnError(client);
+            ReleaseClient(_fd);
+        }
+    }
 }
 
 void TcpServer2::OnListenerAccept()
@@ -208,10 +239,15 @@ void TcpServer2::OnListenerAccept()
 void TcpServer2::OnClientReadReady(SOCKET_FD _fd)
 {
     auto client = GetClient(_fd);
+    if (client == nullptr) {
+        ReleaseClient(_fd);
+        return;
+    }
 
     char buf[1];
     int rc = recv(_fd, buf, 1, MSG_PEEK);
-    if (rc == 0) { //客户端主动关闭
+    LOG_DEBUG << "rc:" << rc;
+    if (rc == 0) { // 客户端主动关闭
         OnClose(client);
         ReleaseClient(_fd);
     } else if (rc < 0) {
@@ -239,7 +275,7 @@ TcpSocketPtr TcpServer2::AddClient(SOCKET_FD _fd, const IPAddress& _addr)
         ReleaseClient(_fd);
     }
     m_socketMap[_fd] = std::shared_ptr<TcpSocket>(new TcpSocket(_fd, _addr));
-    AddSocket(_fd, EventBase2::Read);
+    AddSocket(_fd, EventBase2::Read, true);
     return m_socketMap[_fd];
 }
 

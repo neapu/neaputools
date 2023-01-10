@@ -1,4 +1,6 @@
 #include "NEIPAddress.h"
+#include "NEString.h"
+#include "network/NEIPAddress.h"
 #ifdef _WIN32
 #include <ws2def.h>
 #include <ws2ipdef.h>
@@ -61,6 +63,31 @@ IPAddress IPAddress::MakeAddress(const sockaddr_storage& sin)
         return MakeAddress((const sockaddr_in&)sin);
     } else if (sin.ss_family == AF_INET6) {
         return MakeAddress((const sockaddr_in6&)sin);
+    }
+    return IPAddress();
+}
+
+IPAddress IPAddress::MakeAddress(String _strAddr)
+{
+    if(_strAddr.Front() == '['){
+        auto index = _strAddr.Find(']');
+        if(index == String::npos){
+            return IPAddress();
+        }
+        auto ip = _strAddr.Middle(1, index-1);
+        int port = 0;
+        index = _strAddr.Find(':', index);
+        if(index!=String::npos){
+            port = _strAddr.Middle(index+1, String::end).ToInt();
+        }
+        return MakeAddress(Type::IPv6, ip, port);
+    } else {
+        auto index = _strAddr.Find(':');
+        if(index == String::npos){
+            return MakeAddress(Type::IPv4, _strAddr, 0);
+        } else {
+            return MakeAddress(Type::IPv4, _strAddr.Middle(0, index-1), _strAddr.Middle(index+1, String::end).ToInt());
+        }
     }
     return IPAddress();
 }

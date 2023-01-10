@@ -1,5 +1,5 @@
 #include "network/network_pub.h"
-#include "base/NELogger.h"
+#include "logger/logger.h"
 #ifdef _WIN32
 #include <WinSock2.h>
 #include <Windows.h>
@@ -34,7 +34,8 @@ int neapu::SetSocketNonBlock(SOCKET_FD fd)
     {
         unsigned long nonblocking = 1;
         if (ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR) {
-            LOG_INFO << "ioctlsocket ERROR";
+            int err = GetLastError();
+            LOG_INFO << "ioctlsocket ERROR:" << err;
             return -1;
         }
     }
